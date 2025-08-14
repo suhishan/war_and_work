@@ -1,0 +1,44 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+# Libraries
+
+```{r}
+library(tidyverse)
+library(brms)
+library(haven)
+```
+
+# Making Datasets ready for cleaning and analysis.
+
+## Merge Household and Individual Level Data for NLFS 1.
+
+```{r} 
+# Read the dataset.
+
+nlfs1_h <- read_dta("Data/nlfs1_household.dta")
+nlfs1_i <- read_dta("Data/nlfs1_individual.dta")
+
+# Merge 1:m using psuhhno (PSU and household number). The resulting dataset must ideally have 67,088 observations.
+
+nlfs1_i_m <- left_join(nlfs1_i, nlfs1_h, by = c("psuhhno"))
+write_csv(nlfs1_i_m, "Data/nlfs1_i_m.csv")
+```
+
+## Merge Household and Individual Level Data for NLFS 2
+
+```{r}
+# Read the dataset.
+
+nlfs2_h <- read_dta("Data/nlfs2_household.dta")
+nlfs2_i <- read_dta("Data/nlfs2_individual.dta")
+
+# Merge the datasets such that there are ideally 76,028 observations from the individual dataset.
+
+nlfs2_i_m <- left_join(nlfs2_i, nlfs2_h, by = c("psu", "hhid"))
+write_csv(nlfs2_i_m, "Data/nlfs2_i_m.csv")
+```
+
+
