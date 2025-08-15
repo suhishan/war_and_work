@@ -24,7 +24,7 @@ nlfs1_i <- read_dta("Data/nlfs1_individual.dta")
 # Merge 1:m using psuhhno (PSU and household number). The resulting dataset must ideally have 67,088 observations.
 
 nlfs1_i_m <- left_join(nlfs1_i, nlfs1_h, by = c("psuhhno"))
-write_csv(nlfs1_i_m, "Data/nlfs1_i_m.csv")
+d1 <- nlfs1_i_m
 ```
 
 ## Merge Household and Individual Level Data for NLFS 2
@@ -38,7 +38,128 @@ nlfs2_i <- read_dta("Data/nlfs2_individual.dta")
 # Merge the datasets such that there are ideally 76,028 observations from the individual dataset.
 
 nlfs2_i_m <- left_join(nlfs2_i, nlfs2_h, by = c("psu", "hhid"))
-write_csv(nlfs2_i_m, "Data/nlfs2_i_m.csv")
+d2 <- nlfs2_i_m
+```
+
+# Clean Datasets.
+
+## Clean and make NLFS 1 dataset ready for analysis:
+
+### Renaming some important variables.
+
+```{r}
+d1 <- d1 %>% rename(
+  sex = q01,
+  age = q02,
+  hhsize = tothhmem.x,
+  marital_status = q04,
+  ethnicity = ethnicty.x,
+)
+
+# Note: var.x and var.y in this context are the same. R just likes to keep both during merge if the column name is the same.
+
+# One can check this using all.equal(d1$ethnicty.x, d1$ethnicty.y)
+```
+
+
+### Create overall household variables.
+
+```{r}
+d1 <- d1 %>% mutate(
+  # 1 is married, 0 is everything else
+  marital_status = ifelse(marital_status !=2 | is.na(marital_status),
+                          0, 1), 
+  sex = if_else(sex == 2, 0, 1), # 1 is male
+  nlfs_year = 1998,
+  urbrur = if_else(urbrural.x %in% c(1, 2), 1, 0 ), # 1 is urban
+  perma_resident = NA,
+  district_name = as.character(as_factor(district.x)),
+  district_abbrev = str_sub(str_to_lower(district_name), 1, 4),
+  hindu = if_else(religion.x == 1, 1, 0),
+  brahmin_chhetri = if_else(ethnicity %in% c(1, 2), 1, 0)
+)
+
+# filter those whose age is less than 10.
+```
+
+### Work Hours related variables.
+
+```{r}
+# Wage Hours.
+
+d1 <- d1 %>% mutate(
+  # Note Not Applicable Values are NA for now.
+  wage_hours = ifelse(q16a > 84, 84, q16a),
+)
+
+# Self Employment Hours
+d1 <- d1 %>% mutate(
+  rs_selfemp = rowSums(select(., q16b:q16i), na.rm =T),
+  selfemp_hours = if_else(rs_selfemp > 84, 84, rs_selfemp)
+)
+
+# Self Employment Hours (outside)
+d1 <- d1 %>% mutate(
+    rs_selfemp_o = rowSums(select(., q16b:q16f), na.rm =T),
+    selfemp_hours_outside = if_else(rs_selfemp_o > 84, 84, rs_selfemp_o)
+)
+
+# Work Hours (overall, inside, and outside)
+
+d1 <- d1 %>% mutate(
+  rs_workhours = rowSums(select(., q16a:q16i), na.rm =T),
+  rs_workhours_o = rowSums(select(., q16a:q16f), na.rm =T),
+  rs_workhours_i = rowSums(select(., q16g:q16i), na.rm =T),
+  
+  
+  work_hours = if_else(rs_workhours > 84, 84, rs_workhours),
+  work_hours_outside = if_else(rs_workhours_o > 84, 84, rs_workhours_o),
+  work_hours_inside = if_else(rs_workhours_i > 84, 84, rs_workhours_i)
+)
+
+
+# Non Work Hours
+d1 <- d1 %>% mutate(
+  nonwork_hours = rowSums(select(., q17a:q17g), na.rm = T)
+)
+
+# Total Hours (both outside `Work` as well as inside stuff.)
+
+d1 <- d1 %>% mutate(
+  rs_total = rowSums(select(., work_hours, nonwork_hours), na.rm = T),
+  total_hours = if_else(rs_total > 110, 110, rs_total)
+)
+```
+
+
+### Employed and Unemployed Status related variables.
+
+```{r}
+d1 <- d1 %>% mutate(
+  # Some 9000 values are NA which includes children under 5
+  currently_emp = ifelse(
+    work_hours !=0 | (q18 == 1 & (q19 == 1 | q20 == 1)),
+    1, 0
+  ),
+  # Some 10,000 values are NA which includes children under 10
+  currently_emp_out = ifelse(
+    work_hours_outside !=0 | (q18 == 1 & (q19 == 1 | q20 == 1)),
+    1, 0
+  ),
+  
+  # Missing values are children
+  currently_selfemp_out = ifelse(
+    selfemp_hours_outside !=0 | (q18 == 1 & (q19 == 1 | q20 == 1)),
+    1, 0
+  ),
+  
+  # NAs are people who have not pursued wage jobs. 
+  currently_emp_wage = ifelse(
+    wage_hours !=0 | (q18 == 1 & (q19 == 1 | q20 == 1)),
+    1, 0
+  )
+  
+)
 ```
 
 
