@@ -6,8 +6,8 @@
 
 # Testing out left_merge
 
-d1 %>% group_by(usually_active) %>% count()
-d1 %>% filter(is.na(usually_emp)) %>% group_by(age) %>% count()
+d1 %>% group_by(years_of_edu_all) %>% count()
+d1 %>% filter(is.na(years_of_edu_all)) %>% group_by(age) %>% count()
 d2 %>% group_by(dname) %>% count()
 d1 %>% filter(total_hours == 0) %>% count()
 d1 %>% count(is.na(selfemp_hours))

@@ -210,5 +210,28 @@ d1 <- d1 %>% mutate(
 
 ### Educational Metrics:
 
+```{r}
+d1 <- d1 %>% mutate(
+  can_read = ifelse(q08 == 1, 1, 0),
+  can_write = ifelse(q09 == 1, 1, 0),
+  current_attend = ifelse(q10 == 1, 1, 0), 
+  ever_attend = ifelse(q11 == 1, 1, 0),
+  edu_others = ifelse(q12 == 16, 1, 0),
+  ever_school = ifelse(q10 == 1 | q11 == 1, 1, 0),
+  
+  # This metric is only applicable for those who have ever attended school.
+  years_of_edu  = case_when(
+    q12 %in% c(16, 99) ~ NA,
+    q12 == 13 ~ 16,
+    q12 %in% c(14, 15) ~ 18,
+    TRUE ~ q12
+  ),
+  
+  # Those who have never attended school will be classified as 0.
+  years_of_edu_all = ifelse(ever_school == 0, 0, years_of_edu)
+  
+)
+```
+
 
 
