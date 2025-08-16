@@ -234,4 +234,64 @@ d1 <- d1 %>% mutate(
 ```
 
 
+## Select All the variables that are needed:
+
+```{r}
+d1_select <- d1 %>% select(nlfs_year, psu, age, hhsize, urbrur,
+                           marital_status, hindu, brahmin_chhetri,
+                           district_name, district_abbrev, 
+                           wage_hours, selfemp_hours, selfemp_hours_outside,
+                           work_hours, work_hours_outside, nonwork_hours, total_hours,
+                           currently_emp, currently_emp_out, 
+                           currently_selfemp_out, currently_emp_wage,
+                           currently_unemp, currently_underemp, usually_emp, 
+                           usually_unemp, currently_active, currently_inactive,
+                           usually_active, usually_inactive, 
+                           can_read, can_write, current_attend, 
+                           ever_attend, years_of_edu, ever_school, years_of_edu_all
+                           )
+
+write_csv(d1_select, "Data/nlfs1_kept_individual.csv" )
+```
+
+
+## Clean NLFS 2 and make it ready for analysis.
+
+
+### Overall Household Variables:
+```{r}
+
+
+d2 <- d2 %>% rename(
+  age = q10,
+  hhsize = totmemb,
+)
+
+d2 <- d2 %>% mutate(
+  urbrur = ifelse(urbrur == 2, 0, 1), # urban is 1 and rural is 0
+)
+
+d2 <- d2 %>% mutate(
+  nlfs_year = 2008,
+  sex = ifelse(q09 == 2, 0, 1), # male is 1. 
+  marital_status = ifelse(q13 == 2, 1, 0), # If married then 1, everything else 0
+  hindu = ifelse(religion == 1, 1, 0),
+  brahmin_chhetri = ifelse(q11 %in% c(1, 2), 1, 0),
+  district_name = as.character(as_factor(dist)),
+  district_abbrev = str_sub(str_to_lower(district_name), 1, 4)
+)
+
+# On permanent residency.
+
+d2 <- d2 %>% mutate(
+    not_perma_resident = ifelse(
+      (q17 ==2 & q21 == 2 & q24 < 12) | (q17 == 1 & q21 == 2 & q24 < 12),
+      1, 0
+    ),
+    # Some people probably did not answer question number 17.
+    # Around 1520 people have NA values.
+    perma_resident = ifelse(not_perma_resident == 1, 0, 1)
+)
+```
+
 
