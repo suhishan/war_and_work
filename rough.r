@@ -6,8 +6,8 @@
 
 # Testing out left_merge
 
-d1 %>% group_by(currently_emp_wage) %>% count()
-d1 %>% filter(is.na(currently_emp_wage)) %>% group_by(age) %>% count()
+d1 %>% group_by(usually_active) %>% count()
+d1 %>% filter(is.na(usually_emp)) %>% group_by(age) %>% count()
 d2 %>% group_by(dname) %>% count()
 d1 %>% filter(total_hours == 0) %>% count()
 d1 %>% count(is.na(selfemp_hours))
@@ -33,3 +33,6 @@ c <- tibble(
 c %>% mutate(
   sum  = rowSums(select(., x1,x2), na.rm = T)
 )
+
+
+tibble(x = c(1, 2, 3, 4, 5)) %>% mutate(i = ifelse(x %in% c(1:4), 1, 0))

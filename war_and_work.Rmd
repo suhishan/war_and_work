@@ -157,9 +157,58 @@ d1 <- d1 %>% mutate(
   currently_emp_wage = ifelse(
     wage_hours !=0 | (q18 == 1 & (q19 == 1 | q20 == 1)),
     1, 0
-  )
+  ),
   
+  # Think of the NAs for these 
+  currently_unemp = ifelse(
+    q46 == 1 | (q46 == 2 & q51 !=5),
+    1, 0
+  ),
+  
+  currently_underemp = ifelse(
+    q16 < 40 & (q37 %in% c(1:6)),
+    1, 0
+  ),
+  
+  currently_active = ifelse(
+    currently_emp == 1 | currently_unemp == 1, 
+    1, 0
+  ),
+  
+  # If NA in currently active, then they are considered currently inactive
+  currently_inactive = ifelse(
+    currently_active != 1 | is.na(currently_active), 1, 0
+  )
 )
 ```
+
+### Usually Active Statuses:
+
+```{r}
+d1 <- d1 %>% mutate(
+  # Again, the NAs are children under the age of 5
+  usually_active = ifelse(
+    q58 >=180, 1, 0
+  ),
+  
+  # Again, the NAs are children aged 5 or less.
+  usually_inactive = ifelse(
+    usually_active == 1, 0, 1
+  ),
+  
+  usually_emp = ifelse(
+    usually_active == 1 & (q54 > q55),
+    1, 0
+  ),
+  
+  usually_unemp = ifelse(
+    usually_active == 1 & (q55 >= q54), 
+    1, 0
+  )
+)
+```
+
+### Educational Metrics:
+
 
 
