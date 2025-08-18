@@ -39,8 +39,13 @@ tibble(x = c(1, 2, 3, 4, 5)) %>% mutate(i = ifelse(x %in% c(1:4), 1, 0))
 
 ## For d2
 
-d2 %>% group_by(perma_resident) %>% count()
+d2 %>% group_by(q111) %>% count()
 d1_select %>% group_by(brahmin_chhetri) %>% count()
 
 d2 %>% filter(is.na(not_perma_resident)) %>% group_by(age) %>% count() %>% print(n = 100)
 d2 %>% count(is.na(perma_resident))
+
+
+
+d2 %>% group_by(work_hours_outside) %>% count() %>% print(n = 100)
+d2 %>% count(is.na(selfemp_hours))

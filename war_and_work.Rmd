@@ -290,7 +290,39 @@ d2 <- d2 %>% mutate(
     ),
     # Some people probably did not answer question number 17.
     # Around 1520 people have NA values.
+    # It seems to be the case that these people are not counted as household members. 
     perma_resident = ifelse(not_perma_resident == 1, 0, 1)
+)
+```
+
+### Work Hours related variables:
+
+```{r}
+d2 <- d2 %>% mutate(
+  # Wage Hours
+  rs_wagehours = rowSums(select(., q36a:q36b), na.rm =T),
+  wage_hours = ifelse(rs_wagehours > 84, 84, rs_wagehours),
+  
+  # Self Employment Hours (Total)
+  rs_selfemp = rowSums(select(., q36c:q36j), na.rm = T),
+  selfemp_hours = ifelse(rs_selfemp > 84, 84, rs_selfemp),
+  
+  # Self Employment Hours (Outside)
+  rs_selfemp_o = rowSums(select(., q36c:q36g), na.rm = T),
+  selfemp_hours_outside = ifelse(rs_selfemp_o > 84, 84, rs_selfemp_o),
+  
+  # Total Work Hours
+  rs_workhours = rowSums(select(., q36a:q36j), na.rm = T),
+  work_hours = ifelse(rs_workhours > 84, 84, rs_workhours),
+  
+  # Work Hours Outside
+  rs_workhours_o = rowSums(select(., q36a:q36g), na.rm = T),
+  work_hours_outside = ifelse(rs_workhours_o > 84, 84, rs_workhours_o),
+  
+  # Work Hours Inside (includes fetching water, collecting firewood,
+  # and other home-based work activities. )
+  rs_workhours_i = rowSums(select(., q36h:q36j), na.rm = T),
+  work_hours_inside = ifelse(rs_workhours_i > 84, 84, rs_workhours_i)
 )
 ```
 
