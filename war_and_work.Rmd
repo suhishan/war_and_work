@@ -384,3 +384,36 @@ d2 <- d2 %>% mutate(
 
 ```
 
+
+### Usually Active Status Variables. 
+
+```{r}
+d2 <- d2 %>% mutate(
+  usually_active = ifelse(
+    # 1 if people worked for all 12 months or if not, active months greater
+    # than inactive months.
+    
+    # 9721 NAs out of which 8521 are children.
+    (q88 >= q87) | (q85 == 12),
+    1, 0
+  ),
+  
+  usually_inactive = ifelse(
+    usually_active == 1,
+    1, 0
+  ),
+  
+  # same 9721 NAs.
+  usually_emp = ifelse(
+    (usually_active == 1 & (q85 == 12 | q85>q86)),
+    1, 0
+  ),
+  
+  # same 9721 NAs. 
+  usually_unemp = ifelse(
+    (usually_active == 1 & (q85 !=12 & q86 >= q85)),
+    1, 0
+  )
+)
+```
+

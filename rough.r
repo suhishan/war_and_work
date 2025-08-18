@@ -48,11 +48,13 @@ d2 %>% count(is.na(perma_resident))
 
 
 d2 %>% group_by(work_hours_outside) %>% count() %>% print(n = 100)
-d2 %>% count(is.na(selfemp_hours))
+d2 %>% count(is.na(q87))
+
+d2 %>% group_by(q85) %>% count()
 
 
-d2 %>% group_by(currently_inactive) %>% count()
-d2 %>% filter(is.na(currently_selfemp_out)) %>% group_by(age) %>% count() %>% print(n = 100)
+d2 %>% group_by(usually_unemp) %>% count()
+d2 %>% filter(is.na(usually_active)) %>% group_by(age) %>% count() %>% print(n = 100)
 
 d2 %>% count(is.na(q40))
 
