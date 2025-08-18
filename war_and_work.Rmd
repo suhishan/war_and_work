@@ -326,4 +326,61 @@ d2 <- d2 %>% mutate(
 )
 ```
 
+### Employed and Unemployed Statuses:
+
+```{r}
+d2 <- d2 %>% mutate(
+  # 9721 NAs and out of them 1200 are over the age of 5.
+  currently_emp = ifelse(
+    (work_hours > 0  | (q38 == 1 & (q39 == 1  | q40 == 1))),
+    1, 0
+  ),
+  
+  #11102 NAs but most of them under the age of 5 (exactly 8251 of them )
+  currently_emp_out = ifelse(
+    (work_hours_outside > 0  | (q38 == 1 & (q39 == 1  | q40 == 1))),
+    1, 0
+  ),
+  
+  #17,424 NAs, of which 8251 are children under 5
+  currently_selfemp_out = ifelse(
+    (selfemp_hours_outside > 0  | (q38 == 1 & (q39 == 1  | q40 == 1))),
+    1, 0
+  ),
+  
+  # 41,732 NAs : The reason probably is that there are not a lot wage workers
+  # and how R deals with logical NAs. May have to fix it up later after filtering for age. 
+  currently_emp_wage = ifelse(
+    (wage_hours > 0  | (q38 == 1 & (q39 == 1  | q40 == 1))), 
+    1, 0
+  ),
+  
+  # Think of the NAs for these, there are currently a lot of NAs. It has
+  # probably got sth to do with the fact of how R handles logical NAs. 
+  # For a lot of the people, question number 77 is Not applicable, who in
+  # reality must be casted as 0. 
+  currently_unemp = ifelse(
+    (q77 == 1 | (q77 == 2 & q82 != 5)),
+    1, 0
+  ),
+  
+  # No NAs here:
+  currently_underemp = ifelse(
+    work_hours < 40 & q68 %in% c(1:6),
+    1, 0
+  ),
+  
+  # 34,101 probably come from currently_unemp
+  currently_active = ifelse(
+    currently_emp == 1 | currently_unemp == 1,
+    1, 0
+  ),
+  
+  # NAs here probably should refer to currently_inactive. 
+  currently_inactive = ifelse(
+    currently_active == 1, 0, 1
+  )
+)
+
+```
 
