@@ -84,16 +84,27 @@ d1 <- d1 %>% mutate(
 
 ### Work Hours related variables.
 
+Reminder: Some NAs are turned into 0, which means that if a person hasn't worked in a milling industry, it is coded as NA in the dataset, which implies he/she did 0 hours of work there. 
+
+Reminder : Work Hours and many other activities are capped at 84 because I assume values higher than 12 hours * 7 days, are highly implausible, given a person also has to sleep and do all kinds of stuff. 
+
 ```{r}
 # Wage Hours.
 
 d1 <- d1 %>% mutate(
-  # Note Not Applicable Values are NA for now.
-  wage_hours = ifelse(q16a > 84, 84, q16a),
+  # NAs are people who did not do any wage-related work.
+  # NAs are coded as 0 hours of wage related work
+  
+  # If one wants to see suppose mean(wage_hours| worked a wage job),
+  # filter the sample to only those who had more than 0 hours wage job. 
+  wage_hours = ifelse(is.na(q16a), 0, ifelse(q16a > 84, 84, q16a) )
 )
+
 
 # Self Employment Hours
 d1 <- d1 %>% mutate(
+  # NAs in any one of the columns are treated as 0. 
+  # If all columns are NAs, the sum is 0. 
   rs_selfemp = rowSums(select(., q16b:q16i), na.rm =T),
   selfemp_hours = if_else(rs_selfemp > 84, 84, rs_selfemp)
 )
@@ -136,32 +147,34 @@ d1 <- d1 %>% mutate(
 
 ```{r}
 d1 <- d1 %>% mutate(
-  # Some 9000 values are NA which includes children under 5
+  # For ages 15-59, there are no NAs. 
   currently_emp = ifelse(
     work_hours !=0 | (q18 == 1 & (q19 == 1 | q20 == 1)),
     1, 0
   ),
-  # Some 10,000 values are NA which includes children under 10
+  
+  
   currently_emp_out = ifelse(
-    work_hours_outside !=0 | (q18 == 1 & (q19 == 1 | q20 == 1)),
+    work_hours_outside !=0 | ((q18 == 1 & (q19 == 1 | q20 == 1)) %in% TRUE),
     1, 0
   ),
   
   # Missing values are children
   currently_selfemp_out = ifelse(
-    selfemp_hours_outside !=0 | (q18 == 1 & (q19 == 1 | q20 == 1)),
+    selfemp_hours_outside !=0 | 
+      ((q18 == 1 & (q19 == 1 | q20 == 1)) %in% TRUE),
     1, 0
   ),
   
   # NAs are people who have not pursued wage jobs. 
   currently_emp_wage = ifelse(
-    wage_hours !=0 | (q18 == 1 & (q19 == 1 | q20 == 1)),
+    wage_hours !=0 | ((q18 == 1 & (q19 == 1 | q20 == 1)) %in% TRUE),
     1, 0
   ),
   
   # Think of the NAs for these 
   currently_unemp = ifelse(
-    q46 == 1 | (q46 == 2 & q51 !=5),
+    ((q46 == 1 | (q46 == 2 & q51 !=5)) %in% TRUE),
     1, 0
   ),
   
@@ -180,6 +193,7 @@ d1 <- d1 %>% mutate(
     currently_active != 1 | is.na(currently_active), 1, 0
   )
 )
+
 ```
 
 ### Usually Active Statuses:
@@ -213,13 +227,21 @@ d1 <- d1 %>% mutate(
 ```{r}
 d1 <- d1 %>% mutate(
   can_read = ifelse(q08 == 1, 1, 0),
-  can_write = ifelse(q09 == 1, 1, 0),
+  # the can_write is not asked if the person can't read. We can assume thus
+  # that if can_read == 0 than can_write is also 0
+  can_write = ifelse(q09 !=1 | q08 !=1, 0, 1),
   current_attend = ifelse(q10 == 1, 1, 0), 
+  
+  # the ever attend question is not asked to those who answered YES to 
+  # currently_attend. Therefore there are 4620 NAs. 
   ever_attend = ifelse(q11 == 1, 1, 0),
+  
+  # Just a variable to records q12 == 16 i.e. edu others. 
   edu_others = ifelse(q12 == 16, 1, 0),
   ever_school = ifelse(q10 == 1 | q11 == 1, 1, 0),
   
   # This metric is only applicable for those who have ever attended school.
+  # Therefore if ever_school == 0, years_of_edu is NA
   years_of_edu  = case_when(
     q12 %in% c(16, 99) ~ NA,
     q12 == 13 ~ 16,
@@ -228,9 +250,17 @@ d1 <- d1 %>% mutate(
   ),
   
   # Those who have never attended school will be classified as 0.
-  years_of_edu_all = ifelse(ever_school == 0, 0, years_of_edu)
+  # This means that edu_others also counts as 0 because this only looks at 
+  # formal education
+  years_of_edu_all = ifelse(is.na(years_of_edu),0, years_of_edu)
   
 )
+```
+
+## Limiting the sample to people aged 15 to 59.
+
+```{r}
+d1 <- d1 %>% filter(age %in% c(15:59))
 ```
 
 

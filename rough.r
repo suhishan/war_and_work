@@ -69,3 +69,31 @@ d2 %>% count(is.na(q40))
 d2 %>% group_by(ever_school) %>% count()
 
 
+# After limiting people to age sample 15-59, let's check for NAs and what not.
+
+# Counting NAs
+d1 %>% count(is.na(years_of_edu_all))
+d1 %>% count(is.na(q20))
+
+d1 %>% filter(is.na(years_of_edu_all)) %>% 
+  group_by(age) %>% count()
+# Tabulating Stuff
+d1 %>% 
+  group_by(can_write) %>% count() %>% print(n = 100)
+
+d1 %>% 
+  group_by(wage_hours) %>% count() %>% print(n = 100)
+
+
+
+# Checking the properties of rowSums:
+a <- tibble(
+  col1 = c(1,2,3, NA, NA),
+  col2 = c(4, 5, 6, 7, NA)
+)
+
+a %>% mutate(sum = rowSums( select (., col1, col2), na.rm = T))
+
+d1 %>% count(currently_unemp == 1 & currently_underemp == 1)
+
+d1 %>% count(can_read == 1 & can_write == 0)
