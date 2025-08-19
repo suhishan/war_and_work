@@ -53,8 +53,8 @@ d2 %>% count(is.na(q87))
 d2 %>% group_by(q85) %>% count()
 
 
-d2 %>% group_by(usually_unemp) %>% count()
-d2 %>% filter(is.na(usually_active)) %>% group_by(age) %>% count() %>% print(n = 100)
+d2 %>% group_by(total_hours) %>% count()
+d2 %>% filter(is.na(q30)) %>% group_by(age) %>% count() %>% print(n = 102)
 
 d2 %>% count(is.na(q40))
 
@@ -62,3 +62,10 @@ d2 %>% count(is.na(q40))
 #9721 NAs and out of them, 
 # 8251 are children under 5
 # Exactly 1200 are people over the age of 5.
+
+
+# Educational Stuff
+
+d2 %>% group_by(ever_school) %>% count()
+
+

@@ -322,7 +322,17 @@ d2 <- d2 %>% mutate(
   # Work Hours Inside (includes fetching water, collecting firewood,
   # and other home-based work activities. )
   rs_workhours_i = rowSums(select(., q36h:q36j), na.rm = T),
-  work_hours_inside = ifelse(rs_workhours_i > 84, 84, rs_workhours_i)
+  work_hours_inside = ifelse(rs_workhours_i > 84, 84, rs_workhours_i),
+  
+  # Non Work Hours:
+  nonwork_hours = rowSums(select(., q37a:q37g), na.rm = T),
+  
+  
+  # Total Hours
+  rs_total = rowSums(select(., work_hours, nonwork_hours), na.rm = T),
+  total_hours = ifelse(
+    rs_total > 110, 110, rs_total
+  )
 )
 ```
 
@@ -416,4 +426,58 @@ d2 <- d2 %>% mutate(
   )
 )
 ```
+
+### Educational Metrics:
+
+```{r}
+d2 <- d2 %>% mutate(
+  can_read = ifelse(q26 == 1, 1, 0),
+  can_write = ifelse(q27 == 1, 1, 0),
+  current_attend = ifelse(q28 == 1, 1, 0),
+  ever_attend = ifelse(q29 == 1, 1, 0),
+  ever_school = ifelse(q28 == 1 | q29 == 1, 1, 0),
+  
+  # The missing values are people who have never attended school
+  years_of_edu = case_when(
+    # literate and illiterate is useless info now even info on can_read and
+    # can write.
+    q30 %in% c(16, 17) ~ NA,
+    q30 == 11 ~ 11.5, # 11 in this dataset means 18 months diploma
+    q30 == 13 ~ 16,
+    q30 %in% c(14, 15) ~ 18,
+    TRUE ~ q30
+  ),
+  
+  years_of_edu_all = ifelse(
+    ever_school == 0, 0, years_of_edu
+  )
+  
+)
+```
+
+## Select all the variables that are needed:
+
+```{r}
+d2_select <- d2 %>% select(nlfs_year, psu, age, hhsize, urbrur,
+                           marital_status, hindu, brahmin_chhetri,
+                           district_name, district_abbrev, 
+                           wage_hours, selfemp_hours, selfemp_hours_outside,
+                           work_hours, work_hours_outside, 
+                           nonwork_hours, total_hours,
+                           currently_emp, currently_emp_out, 
+                           currently_selfemp_out, currently_emp_wage,
+                           currently_unemp, currently_underemp, usually_emp,
+                           usually_unemp, 
+                           currently_active, currently_inactive,
+                           usually_active, usually_inactive, 
+                           can_read, can_write, current_attend, 
+                           ever_attend, years_of_edu, 
+                           ever_school, years_of_edu_all
+                           )
+
+write_csv(d2_select, "Data/nlfs2_kept_individual.csv")
+
+```
+
+
 
