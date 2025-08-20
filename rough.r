@@ -97,3 +97,17 @@ a %>% mutate(sum = rowSums( select (., col1, col2), na.rm = T))
 d1 %>% count(currently_unemp == 1 & currently_underemp == 1)
 
 d1 %>% count(can_read == 1 & can_write == 0)
+
+
+# Let's now look at d2 i.e. NLFS 2
+# Counting NAs
+d2 %>% count(is.na(q28))
+# Tabulating Stuff
+
+d2 %>% group_by(can_read) %>% count() %>% print(n = 100)
+
+
+d2 %>% filter(is.na(q28)) %>% group_by(age) %>% count() %>% print(n = 100)
+d1 %>% count(is.na(ever_school))
+
+d2 %>% group_by(age, q29) %>% count() %>% print(n = 150)

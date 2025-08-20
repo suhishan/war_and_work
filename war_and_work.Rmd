@@ -315,12 +315,9 @@ d2 <- d2 %>% mutate(
 
 d2 <- d2 %>% mutate(
     not_perma_resident = ifelse(
-      (q17 ==2 & q21 == 2 & q24 < 12) | (q17 == 1 & q21 == 2 & q24 < 12),
+      (q17 == 2 & q21 == 2 & q24 < 12) | (q17 == 1 & q21 == 2 & q24 < 12),
       1, 0
     ),
-    # Some people probably did not answer question number 17.
-    # Around 1520 people have NA values.
-    # It seems to be the case that these people are not counted as household members. 
     perma_resident = ifelse(not_perma_resident == 1, 0, 1)
 )
 ```
@@ -330,6 +327,8 @@ d2 <- d2 %>% mutate(
 ```{r}
 d2 <- d2 %>% mutate(
   # Wage Hours
+  # 0 here means either they didnot work in wage jobs, or even if they did,
+  # they worked 0 hours in the last week. 
   rs_wagehours = rowSums(select(., q36a:q36b), na.rm =T),
   wage_hours = ifelse(rs_wagehours > 84, 84, rs_wagehours),
   
@@ -368,30 +367,35 @@ d2 <- d2 %>% mutate(
 
 ### Employed and Unemployed Statuses:
 
+Reminder : suppose if currently_emp_wage has like 30,000 FALSE (0) and 10,000 TRUE (1), it means those people did not have a wage job.  They may still be currently employed (TRUE)
+
+NA is turned to 0 in these occasions to show that. 
+
 ```{r}
 d2 <- d2 %>% mutate(
-  # 9721 NAs and out of them 1200 are over the age of 5.
+  # No NAs after filtering out age and not real household members. 
   currently_emp = ifelse(
     (work_hours > 0  | (q38 == 1 & (q39 == 1  | q40 == 1))),
     1, 0
   ),
   
-  #11102 NAs but most of them under the age of 5 (exactly 8251 of them )
+  
   currently_emp_out = ifelse(
-    (work_hours_outside > 0  | (q38 == 1 & (q39 == 1  | q40 == 1))),
+    (work_hours_outside > 0  | 
+       ((q38 == 1 & (q39 == 1  | q40 == 1))) %in% TRUE ),
     1, 0
   ),
   
-  #17,424 NAs, of which 8251 are children under 5
+  
   currently_selfemp_out = ifelse(
-    (selfemp_hours_outside > 0  | (q38 == 1 & (q39 == 1  | q40 == 1))),
+    (selfemp_hours_outside > 0  | 
+       ((q38 == 1 & (q39 == 1  | q40 == 1))) %in% TRUE  ) ,
     1, 0
   ),
   
-  # 41,732 NAs : The reason probably is that there are not a lot wage workers
-  # and how R deals with logical NAs. May have to fix it up later after filtering for age. 
   currently_emp_wage = ifelse(
-    (wage_hours > 0  | (q38 == 1 & (q39 == 1  | q40 == 1))), 
+    (wage_hours > 0  | 
+       ((q38 == 1 & (q39 == 1  | q40 == 1))) %in% TRUE  ), 
     1, 0
   ),
   
@@ -400,7 +404,8 @@ d2 <- d2 %>% mutate(
   # For a lot of the people, question number 77 is Not applicable, who in
   # reality must be casted as 0. 
   currently_unemp = ifelse(
-    (q77 == 1 | (q77 == 2 & q82 != 5)),
+    (q77 == 1 | 
+       (q77 == 2 & q82 != 5)) %in% TRUE,
     1, 0
   ),
   
@@ -410,13 +415,13 @@ d2 <- d2 %>% mutate(
     1, 0
   ),
   
-  # 34,101 probably come from currently_unemp
+  
   currently_active = ifelse(
     currently_emp == 1 | currently_unemp == 1,
     1, 0
   ),
   
-  # NAs here probably should refer to currently_inactive. 
+  
   currently_inactive = ifelse(
     currently_active == 1, 0, 1
   )
@@ -429,11 +434,10 @@ d2 <- d2 %>% mutate(
 
 ```{r}
 d2 <- d2 %>% mutate(
-  usually_active = ifelse(
-    # 1 if people worked for all 12 months or if not, active months greater
-    # than inactive months.
+  # 1 if people worked for all 12 months or if not, active months greater
+  # than inactive months.
     
-    # 9721 NAs out of which 8521 are children.
+  usually_active = ifelse(
     (q88 >= q87) | (q85 == 12),
     1, 0
   ),
@@ -443,13 +447,13 @@ d2 <- d2 %>% mutate(
     1, 0
   ),
   
-  # same 9721 NAs.
+  
   usually_emp = ifelse(
     (usually_active == 1 & (q85 == 12 | q85>q86)),
     1, 0
   ),
   
-  # same 9721 NAs. 
+  
   usually_unemp = ifelse(
     (usually_active == 1 & (q85 !=12 & q86 >= q85)),
     1, 0
@@ -462,28 +466,43 @@ d2 <- d2 %>% mutate(
 ```{r}
 d2 <- d2 %>% mutate(
   can_read = ifelse(q26 == 1, 1, 0),
-  can_write = ifelse(q27 == 1, 1, 0),
+  
+  # People who can't read are not asked can_write question.
+  # If can_read == 0, then can_write should also be 0 and not NA
+  can_write = ifelse(q27 == 2 | q26 == 2, 0, 1),
+
   current_attend = ifelse(q28 == 1, 1, 0),
+  # If current attend is TRUE, the question is not asked for ever attend.
   ever_attend = ifelse(q29 == 1, 1, 0),
-  ever_school = ifelse(q28 == 1 | q29 == 1, 1, 0),
+  ever_school = ifelse((q28 == 1 | q29 == 1) %in% TRUE, 1, 0),
   
   # The missing values are people who have never attended school
   years_of_edu = case_when(
     # literate and illiterate is useless info now even info on can_read and
     # can write.
-    q30 %in% c(16, 17) ~ NA,
+    q30 %in% c(16, 17) ~ 0,
     q30 == 11 ~ 11.5, # 11 in this dataset means 18 months diploma
     q30 == 13 ~ 16,
     q30 %in% c(14, 15) ~ 18,
     TRUE ~ q30
   ),
   
+  # Only looks at formal education. Literate (non Formal education) and Illiterate will be classified as 0 years of formal schooling. 
   years_of_edu_all = ifelse(
     ever_school == 0, 0, years_of_edu
   )
   
 )
 ```
+
+## Filter the sample to include people aged 15-59 and only those who qualify as members of the household.
+
+
+
+```{r}
+d2 <- d2 %>% filter(age %in% c(15:59) & q16 == 1)
+```
+
 
 ## Select all the variables that are needed:
 
