@@ -111,3 +111,63 @@ d2 %>% filter(is.na(q28)) %>% group_by(age) %>% count() %>% print(n = 100)
 d1 %>% count(is.na(ever_school))
 
 d2 %>% group_by(age, q29) %>% count() %>% print(n = 150)
+
+
+# Conflict Dataset.
+
+glimpse(c)
+
+d2 %>% group_by(district_abbrev) %>% count() %>% print(n = 100)
+
+c %>% filter(where_prec %in% c(1)) %>% 
+  select(where_coordinates, best_est) %>% print(n = 100)
+
+c %>% filter(where_prec == 5) %>% select(adm_2)
+
+c %>% group_by(adm_2) %>% count() %>% print(n = 100)
+
+c %>% filter(year %in% c(2007, 2008)) %>% group_by(side_b) %>% count()
+c %>% group_by(side_b) %>% count()
+
+c %>% group_by(side_a, side_b) %>% count()
+c %>% summarize(civ = sum(deaths_civilians),
+                overall = sum(best_est),
+                unknown = sum(deaths_unknown))
+a = tibble(
+  hello = c("h district", "i district", "j district")
+)
+
+a %>% mutate(
+  hello2 = str_remove(hello, " district")
+)
+
+glimpse(c)
+
+
+c %>% group_by(district_name) %>% 
+  summarize(
+    deaths_total = sum(best_est),
+    deaths_side_a = sum(deaths_a),
+    deaths_side_b = sum(deaths_b),
+    deaths_total
+  )
+c %>% count(active_year)
+c %>% filter(active_year ==FALSE) %>% View()
+
+c %>% group_by(district_name) %>% 
+  summarize(
+    across(deaths_a:low_est, \(x) sum(x, na.rm = T))
+  )
+  
+
+c %>% count(low_est)
+c %>% count(district_name, year) %>% 
+  pivot_wider(
+    names_from = year,
+    values_from = n,
+    names_prefix = "deaths_",
+    values_fill = 0
+  ) %>% View()
+
+
+

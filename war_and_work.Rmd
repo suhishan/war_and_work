@@ -357,8 +357,13 @@ d2 <- d2 %>% mutate(
   nonwork_hours = rowSums(select(., q37a:q37g), na.rm = T),
   
   
+  
+)
+
+d2 <- d2 %>% mutate(
   # Total Hours
   rs_total = rowSums(select(., work_hours, nonwork_hours), na.rm = T),
+
   total_hours = ifelse(
     rs_total > 110, 110, rs_total
   )
@@ -525,6 +530,55 @@ d2_select <- d2 %>% select(nlfs_year, psu, age, hhsize, urbrur,
                            )
 
 write_csv(d2_select, "Data/nlfs2_kept_individual.csv")
+
+```
+
+# Clean the Conflict Dataset. 
+
+```{r}
+# Read the dataset.
+c <- read_csv("Data/conflict.csv")
+
+# Filter only those with location precision of 1, 2, or 3 and
+# between the years 1996 to 2006.
+
+c <- c %>% filter(where_prec %in% c(1, 2, 3) & 
+                    (year %in% c(1996:2006)) | 
+                      (year %in% c(2007, 2008) & 
+                       (side_a == "CPN-M" | side_b == "CPN-M"))
+                  )
+
+# Cleaning up districts
+
+c <- c %>% mutate(
+  district_name = str_remove(adm_2, " district"),
+  low_est = as.numeric(str_remove(low_est, ","))
+)
+
+
+
+# Counting deaths for each year for each district. 
+c_year <- c %>% count(district_name, year) %>% 
+  pivot_wider(
+    names_from = year,
+    values_from = n,
+    names_prefix = "deaths_",
+    values_fill = 0
+  )
+
+# grouping and summing a lot of variables by district.
+
+c_others <- c %>% group_by(district_name) %>% 
+  summarize(
+    across(deaths_a:low_est, \(x) sum(x, na.rm = T))
+  )
+
+c_collapsed <- left_join(c_year, c_others, by = c("district_name"))
+c_collapsed <- c_collapsed %>% mutate(
+  district_abbrev = str_sub(str_to_lower(district_name), 1, 4)
+)
+  
+
 
 ```
 
