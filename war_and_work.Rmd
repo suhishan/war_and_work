@@ -79,7 +79,19 @@ d1 <- d1 %>% mutate(
   brahmin_chhetri = if_else(ethnicity %in% c(1, 2), 1, 0)
 )
 
-# filter those whose age is less than 10.
+# Make district_abbrev same for later use.
+
+d1 <- d1 %>% mutate(
+  district_abbrev = case_when(
+    district_name == "Dhankuta" ~ "dhak",
+    district_name == "Dadheldh" ~ "dade",
+    district_name == "Makawanp" ~ "makw",
+    district_name == "Sindhupa" ~ "sinp",
+    district_name == "Tehrahu" ~ "terh",
+    TRUE ~ district_abbrev
+  )
+)
+
 ```
 
 ### Work Hours related variables.
@@ -320,6 +332,18 @@ d2 <- d2 %>% mutate(
     ),
     perma_resident = ifelse(not_perma_resident == 1, 0, 1)
 )
+
+
+# Making district names and abbrevs similar for merging later on.
+d2 <- d2 %>% mutate(
+  district_abbrev = case_when(
+    district_name == "Dhankuta" ~ "dhak",
+    district_name == "Sindhupalchok" ~ "sinp",
+    TRUE ~ district_abbrev
+  )
+)
+
+
 ```
 
 ### Work Hours related variables:
@@ -533,6 +557,17 @@ write_csv(d2_select, "Data/nlfs2_kept_individual.csv")
 
 ```
 
+# Append the two nlfs datasets.
+```{r}
+
+d1_csv <- read_csv("Data/nlfs1_kept_individual.csv")
+d2_csv <- read_csv("Data/nlfs2_kept_individual.csv")
+nlfs <- bind_rows(d1_csv, d2_csv)
+
+```
+
+
+
 # Clean the Conflict Dataset. 
 
 ```{r}
@@ -574,6 +609,7 @@ c_others <- c %>% group_by(district_name) %>%
   )
 
 c_collapsed <- left_join(c_year, c_others, by = c("district_name"))
+
 c_collapsed <- c_collapsed %>% mutate(
   district_abbrev = str_sub(str_to_lower(district_name), 1, 4)
 )
@@ -582,5 +618,72 @@ c_collapsed <- c_collapsed %>% mutate(
 
 ```
 
+# Identify Treatment and Control Districts. 
 
+## Filter districts which already had deaths before the end of 1998. 
+```{r}
+
+c_collapsed <- c_collapsed %>% 
+  mutate(
+    deaths_until_98 = 
+      rowSums(select(., deaths_1996, deaths_1997, deaths_1998), na.rm = T),
+      district = str_to_lower(district_name)
+  )
+
+# Making district codes similar for merge. 
+c_collapsed <- c_collapsed %>% mutate(
+  district_abbrev = case_when(
+    district_name == "Dhankuta" ~  "dhak",
+    district_name == "Sindhupalchowk"~  "sinp",
+    district_name == "Parvat" ~ "parb",
+    district_name == "Makawanpur" ~ "makw",
+    TRUE ~ district_abbrev
+  )
+)
+
+# Load the population census data to normalize deaths by population.
+popn_01 <- read_csv("Data/nepal_popn_2001.csv")
+popn_01 <- popn_01 %>% mutate(
+  district_abbrev = str_sub(str_to_lower(district), 1, 4)
+)
+
+# Making district codes similar for merge. 
+popn_01 <- popn_01 %>% mutate(
+  district_abbrev = case_when(
+    district == "dhankuta" ~  "dhak",
+    district == "sindhupalchok"~  "sinp",
+    TRUE ~ district_abbrev
+  )
+)
+
+# Merge with c_collapsed.
+
+c_collapsed_2 <- left_join(c_collapsed, popn_01, by = c("district_abbrev"))
+c_small <- c_collapsed_2 %>% filter(deaths_until_98 == 0)
+
+```
+
+
+## Assigning Treatment and Control. 
+
+```{r}
+# Conflict Deaths per 10,000 people according to 2001 Census.
+
+c_small <- c_small %>% mutate(
+  cd_per_10000 = round((best_est/ popn_2001) * 1e4,3),
+)
+
+# Treatment assignment based on the 75th percentile. 
+c_small <- c_small %>% mutate(
+  t = ifelse(cd_per_10000 > quantile(cd_per_10000, 0.75), 1, 0)
+)
+
+```
+
+
+# Merge the dataset with nlfs appended dataset. 
+
+```{r}
+c_small_1 <- left_join(c_small, nlfs, by = c("district_abbrev"))
+```
 

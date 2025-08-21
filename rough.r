@@ -170,4 +170,26 @@ c %>% count(district_name, year) %>%
   ) %>% View()
 
 
+c_collapsed_2 %>% count(is.na(popn_2001))
+
+hist(c_small$cd_per_10000)
+c_small$cd_per_10000
+
+nlfs %>% count(district_abbrev) %>% print(n = 100)
+
+d1 %>% count(district_name, district_abbrev) %>% print(n = 80)
+d2 %>% count(district_name, district_abbrev) %>% print(n = 80)
+
+
+# Notes on similarities and differences in district names:
+
+# Conflict Dataset.
+
+# Dhankuta - dhak, Sindhupalchowk - sinp, 
+# Dadeldhura - dade, dolakha - dola
+# Parvat - parb
+# Terhathum - terh.
+
+c_small_1 %>% summarize_all(~ sum(is.na(.))) %>% 
+  pivot_longer(everything()) %>% print(n = 100)
 
