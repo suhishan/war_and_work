@@ -1,0 +1,155 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r}
+library(DRDID)
+library(stargazer)
+library(modelsummary)
+library(xtable)
+```
+
+# Preliminary Observations
+
+## Difference in E[D = d_h] & E[D = d_l]
+```{r}
+
+c_small %>% group_by(treatment_s) %>% 
+  summarize(mean = round( mean(cd_per_10000), 2))
+
+```
+
+## First stage lm regression to see how many conflict deaths higher do treatment districts face than non conflict ones.
+
+
+```{r}
+c_small <- c_small %>% mutate(
+    cd_per_10000_std = rethinking::standardize(cd_per_10000)
+  )
+
+m3 <- lm(cd_per_10000_std  ~ treatment_s, data = c_small); summary(m3)
+
+# Display/Output the results in a tex file.
+stargazer(m3,  type = "text", star.cutoffs = NA,
+          keep.stat = c("n", "rsq","adj.rsq"),
+          covariate.labels = c("Treatment (1/0)"),
+          dep.var.labels = c("Conflict Deaths per 10,000 population (std)"),
+          notes = "(std) represents standardized variables",
+          title = "Conflict Deaths per 10,000 population regressed on Treatment Status",
+          notes.append =F)
+
+```
+
+Conflict Deaths per 10,000 people is 1.8 Standard deviations higher in High conflict-afflicted areas than low conflict-afflicted areas. 
+
+## Make the dataset cleaner and organized for analysis.
+
+```{r}
+c_merged <- c_merged %>% mutate(
+  id = as.numeric(1:n()),
+  post = ifelse(nlfs_year == 2008, 1, 0),
+  work_hours_outside_std = rethinking::standardize(work_hours_outside),
+  selfemp_hours_outside_std =
+    rethinking::standardize(selfemp_hours_outside),
+  conflict_deaths = best_est
+)
+```
+
+# Summary Statistics:
+
+```{r}
+a <- c_merged %>%
+  select(usually_emp,currently_emp_out,currently_selfemp_out,
+         work_hours_outside, selfemp_hours_outside, conflict_deaths,
+         cd_per_10000, age, ever_attend,years_of_edu, years_of_edu_all,
+         hindu, brahmin_chhetri, sex, marital_status, hhsize, urbrur)
+
+datasummary_skim(a ,output = "html", fmt = 2)
+
+```
+
+## Covariate Difference Table for NLFS 1 (1998)
+
+```{r}
+c_merged_98 <- c_merged %>% filter(nlfs_year == 1998)
+```
+
+
+```{r}
+#function to calculate normalized difference
+norm_difference <- function(t, x) {
+  mean_t <-  mean(x[t == 1], na.rm = T)
+  mean_c <-  mean(x[t == 0], na.rm = T)
+  sd_t <-  sd(x[t == 1],na.rm =T)
+  sd_c <- sd(x[t==0],na.rm = T )
+  norm_diff = (mean_t - mean_c) / sqrt(0.5 * (sd_t^2 + sd_c^2))
+  return (round(norm_diff, digits = 4))
+}
+
+table_norm <- c_merged_98 %>% 
+  select(age, years_of_edu_all, years_of_edu, hindu,
+         brahmin_chhetri, sex, marital_status,
+         treatment_s, hhsize, urbrur,
+         ever_school) %>% 
+  summarize(across(
+    .cols = -treatment_s,
+    .fns = list(
+      norm_diff = ~norm_difference(treatment_s, .x),
+      mean_t  = ~ mean(.x[treatment_s == 1], na.rm = T),
+      mean_c = ~mean(.x[treatment_s == 0], na.rm = T)),
+    .names = "{fn}_{.col}"
+  )) %>% 
+
+ pivot_longer(
+    cols = everything(),
+    names_to = "stat_var", values_to = "value"
+  ) %>% 
+  extract(stat_var, into = c("stat", "variable"),
+          regex = "(norm_diff|mean_t|mean_c)_(.+)") %>% 
+  pivot_wider(
+    names_from = stat, values_from = value
+  )
+
+
+```
+
+### Output into a tex file.
+
+```{r}
+pretty_names <- c(
+  age = "Age",
+  years_of_edu_all = "Years of Education (All)",
+  years_of_edu = "Years of Education (If attended school)",
+  hindu = "Hindu (1/0)",
+  brahmin_chhetri = "Brahmin/Chhetri(1/0)",
+  sex = "Male",
+  marital_status = "Married",
+  hhsize = "Household Size",
+  urbrur = "Urban",
+  ever_school = "Ever Attended School"
+)
+
+table_norm_out <- table_norm %>% 
+  mutate(
+    variable = pretty_names[variable]
+  ) %>% 
+  rename(
+    `Norm. Diff` = norm_diff,
+    `Treated Mean` = mean_t,
+    `Control Mean` = mean_c,
+  ) %>% mutate(
+    across(c(`Norm. Diff`, `Treated Mean`, `Control Mean`), ~ round(.x, 3))
+  ) %>% 
+  column_to_rownames("variable")
+
+print(xtable(table_norm_out, caption = "Covariate Balance Statistics"), 
+      type = "latex",
+      file = "Analysis files/covariate_balance.tex",
+      booktabs = T,
+      )
+
+table_norm_out
+
+```
+

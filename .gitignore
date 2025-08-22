@@ -3,6 +3,11 @@
 .RData
 .Ruserdata
 
+
 # Ignore the Data Directory.
 
 Data/
+Analysis File/
+
+# Ignore Readme.html
+README.html
