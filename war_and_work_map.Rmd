@@ -1,0 +1,60 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r}
+library(sf)
+
+```
+
+
+## 1. Read district names and geo-spatial information from the shape file.
+
+```{r}
+districts <- st_read("Data/Nepal Shapfiles GADM/gadm36_NPL_3.shp")
+
+```
+
+## 2.Merging.
+
+```{r}
+districts <- districts %>% mutate(
+  district_abbrev = case_when(
+    NAME_3 == "Parvat"~ "parb",
+    NAME_3 == "Dhankuta" ~ "dhak",
+    TRUE ~ str_sub(str_to_lower(NAME_3),1, 4))
+)
+
+
+districts_joined <- inner_join(districts, c_small,
+                              by = c("district_abbrev"))
+```
+
+
+## 3. Make the map using ggplot.
+
+```{r}
+# Convert a regular dataframe object into an sf object.
+
+districts_joined <- districts_joined %>% mutate(
+  treatment_s = factor(treatment_s,
+                       labels = c("Low Conflict Intensity",
+                                  "High Conflict Intensity"))
+)
+
+p1 <- districts_joined %>% 
+  ggplot()+
+  geom_sf(aes(fill = treatment_s), color = "black", size = 0.2)+
+  scale_fill_manual(
+    values = c("Low Conflict Intensity" = "lightpink",
+               "High Conflict Intensity" = "darkred"),
+    name = "Treatment"
+  )+
+  geom_sf_text(aes(label = district_name.x), size = 2)+
+  theme_minimal()
+  
+
+p1
+```
+
