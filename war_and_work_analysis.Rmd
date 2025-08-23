@@ -153,3 +153,134 @@ table_norm_out
 
 ```
 
+
+## Covariate Difference In Trends:
+
+```{r}
+t1 <- c_merged %>% 
+  select(age, years_of_edu_all, years_of_edu, hindu,
+         brahmin_chhetri, sex, marital_status,
+         treatment_s, hhsize,post, urbrur,
+         ever_school) %>% 
+  group_by(treatment_s) %>% 
+  summarize(
+    across(
+      .cols = -post,
+      .fns = list(
+        delta = ~ mean(.x[post == 1], na.rm = T) - mean(.x[post == 0], 
+                                                        na.rm = T)),
+      .names = "{.col}_{.fn}"
+    ),
+    .groups = "drop") %>% 
+    pivot_longer(cols = -treatment_s, names_to = "variables",
+                 values_to = "delta") %>% 
+  pivot_wider(names_from = treatment_s, values_from = delta,
+              names_prefix = "delta_")
+
+t1
+```
+
+
+### Output it into a tex file.
+
+```{r}
+pretty_names_delta <- c(
+  age_delta = "Age",
+  years_of_edu_all_delta = "Years of Education (All)",
+  years_of_edu_delta = "Years of Education (If attended school)",
+  hindu_delta = "Hindu (1/0)",
+  brahmin_chhetri_delta = "Brahmin/Chhetri(1/0)",
+  sex_delta = "Male",
+  marital_status_delta = "Married",
+  hhsize_delta = "Household Size",
+  urbrur_delta = "Urban",
+  ever_school_delta = "Ever Attended School"
+)
+
+t1_out <- t1 %>% 
+  mutate(variables = pretty_names_delta[variables]) %>% 
+  rename(
+    `Control trend` = delta_0,
+    `Treatment trend` = delta_1,
+  ) %>% column_to_rownames("variables") %>% 
+  mutate(
+    across(c(`Control trend`,`Treatment trend`), ~ round(.x, 3) )
+  )
+
+
+print(xtable(t1_out, caption = "Covariate Balance Statistics for trends/differences (2008 - 1998)"), 
+      type = "latex",
+      file = "Analysis files/covariate_balance_trends_41.tex",
+      booktabs = T,
+      )
+t1_out
+
+```
+
+
+## Propensity Scores for IPW
+
+```{r}
+library(sandwich)
+library(lmtest)
+
+ps <- glm(treatment_s ~  age + hindu + brahmin_chhetri + 
+          sex + urbrur + years_of_edu_all,
+          data = c_merged_98, family = binomial(link = "logit") )
+
+summary(ps)
+
+
+cl_vcov <- vcovCL(ps, cluster = c_merged_98$psu, type = "HC1")
+cl_test <- coeftest(ps, vcov. = cl_vcov); cl_test
+
+
+coefs <- cl_test[, 1]
+ses <- cl_test[, 2] # clustered standard errors. 
+
+```
+
+### Propensity Score Regression Output:
+
+```{r}
+stargazer(ps,
+          se = list(ses),
+          type = "text",
+          #out = "../Second Draft/propensity_score_reg_41.tex",
+          title = "Propensity Score Regression on observed covariates (1998 NLFS)",
+          dep.var.labels = "Treatment (high-conflict)",
+          covariate.labels = c("Age", "Hindu", "Brahmin/Chhetri","Sex", "Marital Status","Urban"),
+          digits = 3,
+          star.cutoffs = NA,
+          
+          notes = "Standard errors are psu-clustered",
+          notes.append = F)
+
+```
+
+
+### Plot the propensity Scores:
+
+```{r}
+c_merged_98$pscore <- predict(ps, type = "response")
+
+ps_small_sample <- c_merged_98 %>% 
+  ggplot(aes(x = pscore, color = factor(treatment_s)))+
+  geom_histogram(aes(y = after_stat(density)),alpha = 0.5,
+                 position = "identity",
+                 fill = "white",
+                 bins = 40,
+                 linewidth = 1.35)+
+  scale_color_manual(values = c("blue","red"),
+                     name = "Treatement",
+                     labels = c("Low Conflict", "High Conflict")) +
+  labs(
+    x= "Propensity Score",
+    y = "Density"
+  ) + 
+  theme_minimal()
+
+ps_small_sample
+
+```
+
