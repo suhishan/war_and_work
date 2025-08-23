@@ -659,8 +659,31 @@ popn_01 <- popn_01 %>% mutate(
 # Merge with c_collapsed.
 
 c_collapsed_2 <- left_join(c_collapsed, popn_01, by = c("district_abbrev"))
-c_small <- c_collapsed_2 %>% filter(deaths_until_98 == 0)
+```
 
+### Merge with Do and Iyer dataset.
+
+```{r}
+do <- read_dta("Data/forest.dta")
+do <- do %>% mutate(
+  district_abbrev = case_when(
+    distname == "Dhankuta" ~ "dhak",
+    distname == "Sindhupalchok" ~ "sinp",
+    TRUE ~ str_sub(str_to_lower(distname),1, 4)
+  )
+)
+
+# Let's try and merged it with c_merged.
+
+c_collapsed_2 <- left_join(c_collapsed_2, do, by = c("district_abbrev"))
+
+```
+
+
+### Only those districts with less than 0 deaths by 1998.
+
+```{r}
+c_small <- c_collapsed_2 %>% filter(deaths_until_98 == 0)
 ```
 
 
@@ -686,4 +709,5 @@ c_small <- c_small %>% mutate(
 ```{r}
 c_merged <- left_join(c_small, nlfs, by = c("district_abbrev"))
 ```
+
 
