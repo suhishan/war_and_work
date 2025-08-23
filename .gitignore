@@ -7,7 +7,7 @@
 # Ignore the Data Directory.
 
 Data/
-Analysis File/
+Analysis files/
 
 # Ignore Readme.html
 README.html

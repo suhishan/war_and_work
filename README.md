@@ -11,3 +11,9 @@ The file also includes code for treatment assignment.
 ### File : war_and_work_analysis.Rmd
 
 Please run this file after *war_and_work.Rmd*. This is the analysis file.
+
+
+### FIle: war_and_work_map.Rmd
+
+The map of Nepal with treatment and control districts.
+
