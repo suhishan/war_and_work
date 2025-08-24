@@ -193,3 +193,31 @@ d2 %>% count(district_name, district_abbrev) %>% print(n = 80)
 c_small_1 %>% summarize_all(~ sum(is.na(.))) %>% 
   pivot_longer(everything()) %>% print(n = 100)
 
+
+c_merged %>% count(district_abbrev, poverty_rate, treatment_s)%>% 
+  arrange(desc(poverty_rate)) %>% print(n=40)
+
+c_small %>% group_by(treatment_s) %>% summarize(mean(pov_rate, na.rm = T))
+
+
+# Sample size classification
+
+c_merged %>% group_by(treatment_s, post) %>% count()
+
+
+
+# IPW with different cut-off rates.
+
+ipwdid(yname = "work_hours_outside", tname = "post", idname = "id",
+             dname = "treatment_s",
+             xformla = ~  age + hindu + brahmin_chhetri + 
+             + urbrur + sex + years_of_edu_all + poverty_rate,
+             data = c_merged, panel = FALSE, boot = F, nboot = 199,
+       trim.level = 0.9)
+
+
+
+c_merged_98 %>% 
+  filter(pscore < quantile(pscore, 0.75)) %>% 
+  group_by(treatment_s) %>% 
+  count()
