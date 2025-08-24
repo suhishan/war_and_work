@@ -8,6 +8,7 @@ library(DRDID)
 library(stargazer)
 library(modelsummary)
 library(xtable)
+library(tidybayes)
 ```
 
 # Preliminary Observations
@@ -52,7 +53,8 @@ c_merged <- c_merged %>% mutate(
   work_hours_outside_std = rethinking::standardize(work_hours_outside),
   selfemp_hours_outside_std =
     rethinking::standardize(selfemp_hours_outside),
-  conflict_deaths = best_est
+  conflict_deaths = best_est,
+  poverty_rate = pov_rate * 100
 )
 ```
 
@@ -72,7 +74,11 @@ datasummary_skim(a ,output = "html", fmt = 2)
 ## Covariate Difference Table for NLFS 1 (1998)
 
 ```{r}
-c_merged_98 <- c_merged %>% filter(nlfs_year == 1998)
+c_merged_98 <- c_merged %>% filter(nlfs_year == 1998 & !is.na(poverty_rate))
+c_merged <- c_merged %>% filter(!is.na(poverty_rate))
+
+# Unfortunately we do not have Rasuwa's Poverty Rate.
+
 ```
 
 
@@ -217,6 +223,12 @@ t1_out
 
 ```
 
+#### Difference in Poverty Rates (Headcount Ratio)
+```{r}
+c_small %>% group_by(treatment_s) %>% 
+  summarize(mean(pov_rate, na.rm = T))
+```
+
 
 ## Propensity Scores for IPW
 
@@ -225,7 +237,7 @@ library(sandwich)
 library(lmtest)
 
 ps <- glm(treatment_s ~  age + hindu + brahmin_chhetri + 
-          sex + urbrur + years_of_edu_all,
+          sex + years_of_edu_all + poverty_rate + urbrur,
           data = c_merged_98, family = binomial(link = "logit") )
 
 summary(ps)
@@ -280,7 +292,109 @@ ps_small_sample <- c_merged_98 %>%
   ) + 
   theme_minimal()
 
+
+# TODO: Output a picture:
+
 ps_small_sample
 
 ```
+
+
+
+# Inverse Probability Weighting function:
+
+## Model 1 (the standard normal model)
+
+```{r}
+ip <- function(v, d){
+  a <- ipwdid(yname = v, tname = "post", idname = "id",
+             dname = "treatment_s",
+             xformla = ~  age + hindu + brahmin_chhetri
+             + urbrur + sex + poverty_rate,
+             data = d, panel = FALSE, boot = F, nboot = 199, 
+             trim.level = 0.9) # Only look at the middle 90%
+  
+  out =  round(data.frame(a[1:4]), 3)
+  
+  return (out)
+}
+
+# Outcome Variables.
+
+vars <- c("usually_emp", "currently_emp_out",
+          "currently_selfemp_out",
+          "work_hours_outside", "work_hours_outside_std"
+          ,"selfemp_hours_outside","selfemp_hours_outside_std")
+
+output_ip <- function(vars, d) {
+  b <- sapply(vars, ip, d)
+  return (data.frame(t(b)))
+}
+
+model_1 <- output_ip(vars, c_merged) %>% 
+  rownames_to_column(var = "variables")
+
+```
+
+### Output Model 1 in a tex format.
+
+```{r}
+outcome_var_names <- c(
+  usually_emp = "Usually Employed",
+  currently_emp_out = "Currently Employed",
+  currently_selfemp_out = "Currently Self-employed",
+  work_hours_outside = "Work Hours",
+  work_hours_outside_std = "Work Hours (std)",
+  selfemp_hours_outside = "Self Employment Hours",
+  selfemp_hours_outside_std = "Self Employment Hours (std)"
+)
+
+model_1_out <- model_1 %>% 
+  mutate(variables = outcome_var_names[variables]) %>% 
+  column_to_rownames("variables")
+
+
+
+print(xtable(model_1_out, caption = "Doubly Robust DiD estimates of ATT"), 
+      type = "latex",
+      file = "Analysis files//model_1.tex",
+      booktabs = T,
+      )
+
+```
+
+
+## Model 2 (the migration model)
+In this model, only those who are permanent residents in 2008 are taken into consideration i.e. people born in their current place or people who moved before the Maoist Insurgency.
+
+```{r}
+c_merged_p <- c_merged %>% filter(post == 0 |
+                                  (post == 1 & perma_resident == 1))
+
+model_2 <- output_ip(vars, c_merged_p) %>% 
+  rownames_to_column(var = "variables")
+
+model_2
+
+```
+
+
+### Output the migration model.
+
+```{r}
+model_2_out <- model_2 %>% 
+  mutate(variables = outcome_var_names[variables]) %>% 
+  column_to_rownames("variables")
+
+print(xtable(model_2_out,
+             caption = "Doubly Robust DiD estimates
+             of ATT accounting for migration"), 
+      type = "latex",
+      file = "Analysis files/model_2.tex",
+      booktabs = T,
+      )
+
+```
+
+
 
