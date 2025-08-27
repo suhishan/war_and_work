@@ -241,5 +241,26 @@ nlfs_grouped_c %>% summarize(
 ) %>% pivot_longer(everything()) %>% 
   print(n = 100)
 
+# War and Work District Level Analysis Rough
 
+d %>% filter(post == 1) %>% 
+  ggplot(aes(x = conflict_deaths, y = work_hours_outside))+
+  geom_point()+
+  theme_minimal()
+
+
+
+#
+a <- d %>% 
+  select(nlfs_year, work_hours_outside, best_est, district_name) %>% 
+  pivot_wider(names_from = nlfs_year, 
+              values_from = work_hours_outside,
+              names_prefix = "wh_") %>% 
+  mutate(wh_diff = wh_2008 - wh_1998 ) 
+
+summary(lm(wh_diff ~ best_est, data = a))
+
+a %>% 
+  ggplot(aes(x = best_est, y = wh_diff))+
+  geom_point()
 

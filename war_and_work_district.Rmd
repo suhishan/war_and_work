@@ -42,3 +42,87 @@ write_csv(nlfs_grouped_c, file = "Data/nlfs_district.csv")
 # Analysis of relationships.
 
 
+## Required Libraries:
+
+```{r}
+library(brms)
+library(tidyverse)
+
+theme_set(
+  theme_minimal() +
+    theme(
+      panel.grid = element_blank()
+    )
+)
+
+```
+
+## Analysis Variables from the dataset.
+
+```{r}
+d <- read_csv("Data/nlfs_district.csv")
+
+d <- d %>% mutate(
+  post = ifelse(nlfs_year == 2008, 1, 0),
+  work_hours_outside_std = rethinking::standardize(work_hours_outside),
+  selfemp_hours_outside_std =
+    rethinking::standardize(selfemp_hours_outside),
+  poverty_rate = pov_rate * 100,
+  cd_per_10000 = round((best_est/popn_2001) * 10000, 3)
+)
+```
+
+For an interaction model: To see if the relationship between conflict deaths and work hours changed in 2008 compared to 1998, we need, for all districts at 1998, death counts at 1998. 
+
+```{r}
+d <- d %>% mutate(
+  conflict_deaths = ifelse(post == 0, deaths_1998, best_est),
+  pid = ifelse(post == 1, "1", "2"),
+  post = as.factor(post)
+)
+```
+
+
+## First Model: Work Hours difference between pre and post-conflict.
+
+```{r}
+m1 <- brm(
+  data = d,
+  family = gaussian(),
+  work_hours_outside_std ~ 0 + pid,
+  prior = c(
+    prior(normal(0, 1), class = b, coef = pid1),
+    prior(normal(0, 1), class = b, coef = pid2),
+    prior(exponential(1), class = sigma)
+  ),
+  
+  iter = 2000, warmup = 1000, chains = 4, cores = 4,
+  sample_prior = T,
+  file = "fits/m01"
+)
+```
+
+Plotting the coefficients for pid == 1 and pid == 2 (1998d)
+
+```{r}
+post_1 <- as_draws_df(m1) %>% data.frame()
+
+post_1 %>% 
+  select(starts_with("b_")) %>% 
+  pivot_longer(everything()) %>% 
+  mutate(value = (value * 5.91) + 36.4) %>% # in the original scale
+  ggplot(aes(x = value, group = name))+
+  geom_density(aes(fill = name), alpha = 1/5)+
+  scale_fill_manual(values = c(
+    "b_pid1" = "red",
+    "b_pid2" = "blue"
+  ), labels = c("2008", "1998"))+
+  labs(x = "Work Hours Outside (std)",
+       fill = "")
+```
+
+
+
+
+
+
