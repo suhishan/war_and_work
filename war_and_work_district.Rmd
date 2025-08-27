@@ -1,0 +1,44 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+### Collapse the huge nlfs dataset into the district level.
+
+```{r}
+nlfs_grouped <- nlfs %>% group_by(district_abbrev, nlfs_year) %>% 
+  summarize(
+   across(
+     .cols = -c(district_name, psu),
+     .fns = list(
+       mean = ~ round(mean(.x, na.rm = T), 3),
+       sd = ~ round(sd(.x, na.rm = T), 3)
+     ),
+     .names = "{.fn}_{.col}"
+   ),
+   sample_w = n()
+  ) %>% 
+  ungroup()
+
+```
+
+### Merge this with the conflict dataset.
+
+```{r}
+nlfs_grouped_c <- left_join(nlfs_grouped, c_collapsed_2,
+                            by = c("district_abbrev"))
+# We do not have Mustang's conflict data, so it will remain as NA for now.
+
+```
+
+### Output district collapsed data into a file
+
+```{r}
+write_csv(nlfs_grouped_c, file = "Data/nlfs_district.csv")
+```
+
+
+# Analysis of relationships.
+
+
