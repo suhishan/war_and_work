@@ -17,3 +17,6 @@ Please run this file after *war_and_work.Rmd*. This is the analysis file.
 
 The map of Nepal with treatment and control districts.
 
+### File : war_and_work_district.Rmd
+
+District level analysis. 
