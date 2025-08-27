@@ -15,6 +15,8 @@ library(haven)
 
 ## Merge Household and Individual Level Data for NLFS 1.
 
+NOTE: Both NLFS 1 and NLFS 2 don't have data on Manang and Humla
+
 ```{r} 
 # Read the dataset.
 
@@ -87,7 +89,7 @@ d1 <- d1 %>% mutate(
     district_name == "Dadheldh" ~ "dade",
     district_name == "Makawanp" ~ "makw",
     district_name == "Sindhupa" ~ "sinp",
-    district_name == "Tehrahu" ~ "terh",
+    district_name == "Tehrathu" ~ "terh",
     TRUE ~ district_abbrev
   )
 )

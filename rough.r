@@ -221,3 +221,25 @@ c_merged_98 %>%
   filter(pscore < quantile(pscore, 0.75)) %>% 
   group_by(treatment_s) %>% 
   count()
+
+
+nlfs %>% group_by(district_abbrev, nlfs_year) %>% 
+  summarize(
+   across(
+     .cols = -c(district_name, psu),
+     .fns = list(
+       mean = ~ round(mean(.x, na.rm = T), 4)
+     ),
+     .names = "{.col}"
+   ),
+   sample_w = n()
+  ) %>% 
+  ungroup() %>% View()
+
+nlfs_grouped_c %>% summarize(
+  across(everything(), ~ sum(is.na(.)))
+) %>% pivot_longer(everything()) %>% 
+  print(n = 100)
+
+
+
