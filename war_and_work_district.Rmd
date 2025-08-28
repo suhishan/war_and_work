@@ -117,11 +117,56 @@ post_1 %>%
     "b_pid1" = "red",
     "b_pid2" = "blue"
   ), labels = c("2008", "1998"))+
-  labs(x = "Work Hours Outside (std)",
+  labs(x = "Work Hours Outside",
        fill = "")
 ```
 
 
+After some thought, the model I am trying to estimate is:
+
+Difference in work hours between 2008 and 1998 ~ Conflict Deaths.
+For that I will need to estimate the contrast in work hours for each district, then use its mean.
+For this we will need the large nlfs dataset.
+
+Let's try and do that:
+
+```{r}
+
+nlfs <- nlfs %>% mutate(
+  post = ifelse(nlfs_year == 1998, 0, 1),
+  pid = as.factor(ifelse(post == 0, "1", "2"))
+)
+
+nlfs <- nlfs %>% mutate(
+  did = as.factor(district_abbrev)
+)
+
+nlfs <- nlfs %>% mutate(
+  work_hours_outside_std = (work_hours_outside - mean(work_hours_outside))
+                            / sd(work_hours_outside)
+)
+
+```
+
+
+## Fit the district model:
+
+```{r}
+m2 <- brm(
+  data = nlfs,
+  family = gaussian,
+  work_hours_outside_std ~ 0 + did:pid,
+  prior = c(
+    prior(normal(0, 1), class = b),
+    prior(exponential(1), class = sigma)
+  ),
+  
+  iter = 2000, warmup = 1000, chains = 4, cores = 4,
+  sample_prior = T,
+  file = "fits/m02"
+  
+)
+```
 
 
 

@@ -264,3 +264,6 @@ a %>%
   ggplot(aes(x = best_est, y = wh_diff))+
   geom_point()
 
+
+
+nlfs %>% count(district_abbrev, post)
