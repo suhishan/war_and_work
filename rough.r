@@ -267,3 +267,34 @@ a %>%
 
 
 nlfs %>% count(district_abbrev, post)
+
+dj %>% filter(is.na(best_est))
+
+View(dj)
+
+
+# Rukum Rolpa Pyuthan Baglung dataset.
+
+c_merged_4 %>% count(district_abbrev, deaths_until_98, best_est,
+                     norm_forest, pov_rate)
+
+c_merged_4 %>% group_by(district_abbrev, nlfs_year) %>% 
+  summarize(
+    mean(work_hours_outside), mean(hindu), mean(sex), mean(years_of_edu_all)
+  )
+
+
+# Simple interaction OLS between Gulmi and Arghakhanchi
+
+m1 <- lm(usually_emp ~ post + treatment_s + post*treatment_s, data = c_merged_3)
+summary(m1)
+
+# What is the actual difference in conflict deaths between gulmi and Argakhanchi
+
+c_merged_3 %>% group_by(treatment_s, post) %>% summarize(mean(usually_emp))
+
+# Summary Statistics for conflict deaths and conflict deaths per 10,000 people.
+
+c_small %>% summarize(mean(best_est),sd(best_est), min(best_est), max(best_est))
+c_small %>% summarize(mean(cd_per_10000),sd(cd_per_10000),
+                      min(cd_per_10000), max(cd_per_10000))
