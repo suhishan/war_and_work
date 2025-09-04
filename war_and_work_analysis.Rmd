@@ -21,6 +21,13 @@ c_small %>% group_by(treatment_s) %>%
 
 ```
 
+## Sample Size Classification:
+
+```{r}
+c_merged %>% count(nlfs_year, treatment_s)
+```
+
+
 ## First stage lm regression to see how many conflict deaths higher do treatment districts face than non conflict ones.
 
 
@@ -32,11 +39,12 @@ c_small <- c_small %>% mutate(
 m3 <- lm(cd_per_10000_std  ~ treatment_s, data = c_small); summary(m3)
 
 # Display/Output the results in a tex file.
-stargazer(m3,  type = "text", star.cutoffs = NA,
+stargazer(m3,  type = "latex", star.cutoffs = NA,
           keep.stat = c("n", "rsq","adj.rsq"),
           covariate.labels = c("Treatment (1/0)"),
           dep.var.labels = c("Conflict Deaths per 10,000 population (std)"),
           notes = "(std) represents standardized variables",
+          out = "Analysis files/small_sample_reg.tex",
           title = "Conflict Deaths per 10,000 population regressed on Treatment Status",
           notes.append =F)
 
@@ -216,7 +224,7 @@ t1_out <- t1 %>%
 
 print(xtable(t1_out, caption = "Covariate Balance Statistics for trends/differences (2008 - 1998)"), 
       type = "latex",
-      file = "Analysis files/covariate_balance_trends_41.tex",
+      file = "Analysis files/covariate_balance_trends.tex",
       booktabs = T,
       )
 t1_out
