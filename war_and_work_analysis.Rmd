@@ -9,6 +9,10 @@ library(stargazer)
 library(modelsummary)
 library(xtable)
 library(tidybayes)
+library(tidyverse)
+
+theme_set(theme_minimal()+
+            theme(panel.grid = element_blank()))
 ```
 
 # Preliminary Observations
@@ -244,8 +248,8 @@ c_small %>% group_by(treatment_s) %>%
 library(sandwich)
 library(lmtest)
 
-ps <- glm(treatment_s ~  age + hindu + brahmin_chhetri + 
-          sex + years_of_edu_all + poverty_rate + urbrur,
+ps <- glm(treatment_s ~ hindu + brahmin_chhetri + 
+          sex + poverty_rate + urbrur,
           data = c_merged_98, family = binomial(link = "logit") )
 
 summary(ps)
@@ -265,13 +269,13 @@ ses <- cl_test[, 2] # clustered standard errors.
 ```{r}
 stargazer(ps,
           se = list(ses),
-          type = "text",
-          #out = "../Second Draft/propensity_score_reg_41.tex",
+          type = "latex",
+          out = "Analysis files/propensity_score_reg.tex",
           title = "Propensity Score Regression on observed covariates (1998 NLFS)",
           dep.var.labels = "Treatment (high-conflict)",
-          covariate.labels = c("Age", "Hindu", "Brahmin/Chhetri","Sex", "Marital Status","Urban"),
+          covariate.labels = c("Hindu", "Brahmin/Chhetri","Sex", "Poverty Rate","Urban"),
           digits = 3,
-          star.cutoffs = NA,
+          #star.cutoffs = NA,
           
           notes = "Standard errors are psu-clustered",
           notes.append = F)
@@ -305,6 +309,9 @@ ps_small_sample <- c_merged_98 %>%
 
 ps_small_sample
 
+ggsave("Analysis files/ps_overlap.jpg", plot = ps_small_sample,
+       width = 25, height = 15, units = c("cm"), bg = "white")
+
 ```
 
 
@@ -314,17 +321,16 @@ ps_small_sample
 ## Model 1 (the standard normal model)
 
 ```{r}
-ip <- function(v, d){
-  a <- ipwdid(yname = v, tname = "post", idname = "id",
+dr <- function(v, d){
+  a <- drdid(yname = v, tname = "post", idname = "id",
              dname = "treatment_s",
-             xformla = ~  age + hindu + brahmin_chhetri
-             + urbrur + sex + poverty_rate,
-             data = d, panel = FALSE, boot = F, nboot = 199, 
-             trim.level = 0.9) # Only look at the middle 90%
+             xformla = ~ hindu + brahmin_chhetri + urbrur + sex + poverty_rate,
+             data = d, panel = FALSE, boot = F, nboot = 199)
   
   out =  round(data.frame(a[1:4]), 3)
   
   return (out)
+  
 }
 
 # Outcome Variables.
@@ -334,12 +340,12 @@ vars <- c("usually_emp", "currently_emp_out",
           "work_hours_outside", "work_hours_outside_std"
           ,"selfemp_hours_outside","selfemp_hours_outside_std")
 
-output_ip <- function(vars, d) {
-  b <- sapply(vars, ip, d)
+output_dr <- function(vars, d) {
+  b <- sapply(vars, dr, d)
   return (data.frame(t(b)))
 }
 
-model_1 <- output_ip(vars, c_merged) %>% 
+model_1 <- output_dr(vars, c_merged) %>% 
   rownames_to_column(var = "variables")
 
 ```
@@ -365,10 +371,18 @@ model_1_out <- model_1 %>%
 
 print(xtable(model_1_out, caption = "Doubly Robust DiD estimates of ATT"), 
       type = "latex",
-      file = "Analysis files//model_1.tex",
+      file = "Analysis files/model_1.tex",
       booktabs = T,
       )
 
+```
+
+### Draw Coefficient Plots.
+
+Employed/Unemployed Statuses Coefficient Plots.
+
+```{r}
+model_1
 ```
 
 

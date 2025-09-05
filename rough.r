@@ -298,3 +298,27 @@ c_merged_3 %>% group_by(treatment_s, post) %>% summarize(mean(usually_emp))
 c_small %>% summarize(mean(best_est),sd(best_est), min(best_est), max(best_est))
 c_small %>% summarize(mean(cd_per_10000),sd(cd_per_10000),
                       min(cd_per_10000), max(cd_per_10000))
+
+
+# Coefficient Plots.
+colnames(model_1_out) <- c("Variable", "ATT", "se", "lci", "uci")
+
+model_1_1 <- model_1_out[1:3, ]
+model_1_1$Outcome <- c("Usually Employed",
+                         "Currently Employed",
+                         "Currently Self Employed")
+
+
+model_1_1 %>%
+  ggplot(aes(x = as.numeric(ATT), y = as.factor(Outcome)))+
+  geom_point()+
+  geom_errorbarh(aes(xmin = as.numeric(lci),
+                     xmax = as.numeric(uci)),
+                 height = 0.2,
+                 col = "blue")+
+  geom_vline(xintercept = 0, linetype = 2)+
+  labs(x = "ATT", y = "Outcome")+
+  theme_minimal()
+
+
+?stat_pointinterval
