@@ -316,7 +316,7 @@ ggsave("Analysis files/ps_overlap.jpg", plot = ps_small_sample,
 
 
 
-# Inverse Probability Weighting function:
+# Doubly Robust DiD function:
 
 ## Model 1 (the standard normal model)
 
@@ -324,7 +324,8 @@ ggsave("Analysis files/ps_overlap.jpg", plot = ps_small_sample,
 dr <- function(v, d){
   a <- drdid(yname = v, tname = "post", idname = "id",
              dname = "treatment_s",
-             xformla = ~ hindu + brahmin_chhetri + urbrur + sex + poverty_rate,
+             xformla = ~ hindu + brahmin_chhetri + 
+               urbrur + sex + poverty_rate,
              data = d, panel = FALSE, boot = F, nboot = 199)
   
   out =  round(data.frame(a[1:4]), 3)
@@ -344,6 +345,11 @@ output_dr <- function(vars, d) {
   b <- sapply(vars, dr, d)
   return (data.frame(t(b)))
 }
+
+```
+
+## Model 1 : The conventional model.
+```{r}
 
 model_1 <- output_dr(vars, c_merged) %>% 
   rownames_to_column(var = "variables")
@@ -368,7 +374,6 @@ model_1_out <- model_1 %>%
   column_to_rownames("variables")
 
 
-
 print(xtable(model_1_out, caption = "Doubly Robust DiD estimates of ATT"), 
       type = "latex",
       file = "Analysis files/model_1.tex",
@@ -379,10 +384,60 @@ print(xtable(model_1_out, caption = "Doubly Robust DiD estimates of ATT"),
 
 ### Draw Coefficient Plots.
 
-Employed/Unemployed Statuses Coefficient Plots.
+#### Employed/Unemployed Statuses Coefficient Plots.
 
 ```{r}
-model_1
+# Coefficient Plots for the first three Bernoulli variables.
+
+model_1_1 <- model_1_out[1:3, ]
+model_1_1$Outcome <- c("Usually Employed",
+                         "Currently Employed",
+                         "Currently Self Employed")
+
+
+coefplot_1_1 <- model_1_1 %>%
+  ggplot(aes(x = as.numeric(ATT), y = as.factor(Outcome)))+
+  geom_point(size = 3)+
+  geom_errorbarh(aes(xmin = as.numeric(lci),
+                     xmax = as.numeric(uci)),
+                 height = 0.2,
+                 col = "black",
+                 linewidth = 1.1)+
+  geom_vline(xintercept = 0, linetype = 2)+
+  labs(x = "ATT", title = "Doubly Robust DiD Estimates",
+       subtitle = "The coefficient plot shows 95% confidence intervals.",
+       y = "")+
+  theme_minimal(base_size = 18)
+
+# Output the picture.
+ggsave("Analysis files/coefplot_1_1.jpg", plot = coefplot_1_1,
+       width = 25, height = 15, units = c("cm"), bg = "white")
+
+
+```
+
+#### Work Hours Coefficient Plots
+
+```{r}
+model_1_2 <- model_1_out[c(4, 6),]
+model_1_2$Outcomes <- c("Work Hours", "Self Employment Hours")
+
+coefplot_1_2 <- model_1_2 %>% 
+  ggplot(aes(x = as.numeric(ATT), y = Outcomes))+
+  geom_point(size = 3)+
+  geom_errorbarh(aes(xmin = as.numeric(lci), xmax = as.numeric(uci)),
+                 height = 0.2, color = "black", linewidth = 1.1)+
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(x = "ATT (hours)", y = "", 
+       title = "Doubly Robust DiD Estimates",
+       subtitle = "The coefficient plot shows 95% confidence intervals")+
+  theme_minimal(base_size = 18) 
+
+
+# Output the picture
+ggsave("Analysis files/coefplot_1_2.jpg", plot = coefplot_1_2,
+       width = 25, height = 15, units = c("cm"), bg = "white")
+
 ```
 
 
@@ -393,7 +448,7 @@ In this model, only those who are permanent residents in 2008 are taken into con
 c_merged_p <- c_merged %>% filter(post == 0 |
                                   (post == 1 & perma_resident == 1))
 
-model_2 <- output_ip(vars, c_merged_p) %>% 
+model_2 <- output_dr(vars, c_merged_p) %>% 
   rownames_to_column(var = "variables")
 
 model_2
@@ -418,5 +473,60 @@ print(xtable(model_2_out,
 
 ```
 
+####  Bernoulli Employed Type Coefficient Plots for Migration model
 
+```{r}
+# Coefficient Plots for the first three Bernoulli variables.
+
+model_2_1 <- model_2_out[1:3, ]
+model_2_1$Outcome <- c("Usually Employed",
+                         "Currently Employed",
+                         "Currently Self Employed")
+
+
+coefplot_2_1 <- model_2_1 %>%
+  ggplot(aes(x = as.numeric(ATT), y = as.factor(Outcome)))+
+  geom_point(size = 3)+
+  geom_errorbarh(aes(xmin = as.numeric(lci),
+                     xmax = as.numeric(uci)),
+                 height = 0.2,
+                 col = "black",
+                 linewidth = 1.1)+
+  geom_vline(xintercept = 0, linetype = 2)+
+  labs(x = "ATT", title = "Doubly Robust DiD Estimates (Controlling for Migration)",
+       subtitle = "The coefficient plot shows 95% confidence intervals.",
+       y = "")+
+  theme_minimal(base_size = 18)
+
+# Output the picture.
+ggsave("Analysis files/coefplot_2_1.jpg", plot = coefplot_2_1,
+       width = 30, height = 15, units = c("cm"), bg = "white")
+
+
+```
+
+#### Work Hour Coefficient Plots (Controlling for migration)
+
+```{r}
+model_2_2 <- model_2_out[c(4, 6),]
+model_2_2$Outcomes <- c("Work Hours", "Self Employment Hours")
+
+coefplot_2_2 <- model_2_2 %>% 
+  ggplot(aes(x = as.numeric(ATT), y = Outcomes))+
+  geom_point(size = 3)+
+  geom_errorbarh(aes(xmin = as.numeric(lci), xmax = as.numeric(uci)),
+                 height = 0.2, color = "black", linewidth = 1.1)+
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(x = "ATT (hours)", y = "", 
+       title = "Doubly Robust DiD Estimates (Controlling for Migration)",
+       subtitle = "The coefficient plot shows 95% confidence intervals")+
+  theme_minimal(base_size = 18) 
+
+
+# Output the picture
+ggsave("Analysis files/coefplot_2_2.jpg", plot = coefplot_2_2,
+       width = 30, height = 15, units = c("cm"), bg = "white")
+
+
+```
 

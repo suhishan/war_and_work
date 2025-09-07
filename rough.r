@@ -300,9 +300,7 @@ c_small %>% summarize(mean(cd_per_10000),sd(cd_per_10000),
                       min(cd_per_10000), max(cd_per_10000))
 
 
-# Coefficient Plots.
-colnames(model_1_out) <- c("Variable", "ATT", "se", "lci", "uci")
-
+# Coefficient Plots for the first three bernoulli variables.
 model_1_1 <- model_1_out[1:3, ]
 model_1_1$Outcome <- c("Usually Employed",
                          "Currently Employed",
@@ -311,14 +309,38 @@ model_1_1$Outcome <- c("Usually Employed",
 
 model_1_1 %>%
   ggplot(aes(x = as.numeric(ATT), y = as.factor(Outcome)))+
-  geom_point()+
+  geom_point(size = 3)+
   geom_errorbarh(aes(xmin = as.numeric(lci),
                      xmax = as.numeric(uci)),
                  height = 0.2,
-                 col = "blue")+
+                 col = "black",
+                 linewidth = 1.1)+
   geom_vline(xintercept = 0, linetype = 2)+
-  labs(x = "ATT", y = "Outcome")+
+  labs(x = "ATT", title = "Doubly Robust DiD Estimates",
+       subtitle = "The coefficient plot shows 95% confidence intervals.",
+       y = "")+
   theme_minimal()
 
 
 ?stat_pointinterval
+
+
+# Work Hours Coefficient Plots.
+
+model_1_2 <- model_1_out[c(4, 6),]
+model_1_2$Outcomes <- c("Work Hours", "Self Employment Hours")
+
+model_1_2 %>% 
+  ggplot(aes(x = as.numeric(ATT), y = Outcomes))+
+  geom_point(size = 2)+
+  geom_errorbarh(aes(xmin = as.numeric(lci), xmax = as.numeric(uci)),
+                 height = 0.2, color = "black", linewidth = 1.1)+
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(x = "ATT", y = "", 
+       title = "Doubly Robust DiD Estimates",
+       subtitle = "The coefficient plot shows 95% confidence intervals")+
+  theme_minimal()+
+  theme(
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14)
+  )
