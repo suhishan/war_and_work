@@ -55,7 +55,13 @@ d1 <- d1 %>% rename(
   age = q02,
   hhsize = tothhmem.x,
   marital_status = q04,
-  ethnicity = ethnicty.x,
+  ethnicity = ethnicty.x
+)
+
+# Seasons
+d1 <- d1 %>% mutate(
+  season = factor(season.x, levels = c(1, 2, 3),
+                  labels = c("Rainy", "Winter", "Dry"))
 )
 
 # Note: var.x and var.y in this context are the same. R just likes to keep both during merge if the column name is the same.
@@ -281,7 +287,7 @@ d1 <- d1 %>% filter(age %in% c(15:59))
 ## Select All the variables that are needed:
 
 ```{r}
-d1_select <- d1 %>% select(nlfs_year, psu, age, sex, hhsize, urbrur, perma_resident,
+d1_select <- d1 %>% select(nlfs_year, psu, age, sex, hhsize, urbrur, season, perma_resident,
                            marital_status, hindu, brahmin_chhetri,
                            district_name, district_abbrev, 
                            wage_hours, selfemp_hours, selfemp_hours_outside,
@@ -313,6 +319,8 @@ d2 <- d2 %>% rename(
 
 d2 <- d2 %>% mutate(
   urbrur = ifelse(urbrur == 2, 0, 1), # urban is 1 and rural is 0
+  season = factor(season, levels = c(2, 3, 1),
+                  labels = c("Rainy", "Winter", "Dry"))
 )
 
 d2 <- d2 %>% mutate(
@@ -538,7 +546,7 @@ d2 <- d2 %>% filter(age %in% c(15:59) & q16 == 1)
 ## Select all the variables that are needed:
 
 ```{r}
-d2_select <- d2 %>% select(nlfs_year, psu, age, sex, hhsize, urbrur, perma_resident,
+d2_select <- d2 %>% select(nlfs_year, psu, age, sex, hhsize, urbrur,season, perma_resident,
                            marital_status, hindu, brahmin_chhetri,
                            district_name, district_abbrev, 
                            wage_hours, selfemp_hours, selfemp_hours_outside,
