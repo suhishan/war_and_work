@@ -384,7 +384,7 @@ print(xtable(model_1_out, caption = "Doubly Robust DiD estimates of ATT"),
 
 ### Draw Coefficient Plots.
 
-#### Employed/Unemployed Statuses Coefficient Plots.
+#### Employed/Unemployed Statuses
 
 ```{r}
 # Coefficient Plots for the first three Bernoulli variables.
@@ -394,50 +394,13 @@ model_1_1$Outcome <- c("Usually Employed",
                          "Currently Employed",
                          "Currently Self Employed")
 
-
-coefplot_1_1 <- model_1_1 %>%
-  ggplot(aes(x = as.numeric(ATT), y = as.factor(Outcome)))+
-  geom_point(size = 3)+
-  geom_errorbarh(aes(xmin = as.numeric(lci),
-                     xmax = as.numeric(uci)),
-                 height = 0.2,
-                 col = "black",
-                 linewidth = 1.1)+
-  geom_vline(xintercept = 0, linetype = 2)+
-  labs(x = "ATT", title = "Doubly Robust DiD Estimates",
-       subtitle = "The coefficient plot shows 95% confidence intervals.",
-       y = "")+
-  theme_minimal(base_size = 18)
-
-# Output the picture.
-ggsave("Analysis files/coefplot_1_1.jpg", plot = coefplot_1_1,
-       width = 25, height = 15, units = c("cm"), bg = "white")
-
-
 ```
 
-#### Work Hours Coefficient Plots
+#### Work Hours 
 
 ```{r}
 model_1_2 <- model_1_out[c(4, 6),]
 model_1_2$Outcomes <- c("Work Hours", "Self Employment Hours")
-
-coefplot_1_2 <- model_1_2 %>% 
-  ggplot(aes(x = as.numeric(ATT), y = Outcomes))+
-  geom_point(size = 3)+
-  geom_errorbarh(aes(xmin = as.numeric(lci), xmax = as.numeric(uci)),
-                 height = 0.2, color = "black", linewidth = 1.1)+
-  geom_vline(xintercept = 0, linetype = 2) +
-  labs(x = "ATT (hours)", y = "", 
-       title = "Doubly Robust DiD Estimates",
-       subtitle = "The coefficient plot shows 95% confidence intervals")+
-  theme_minimal(base_size = 18) 
-
-
-# Output the picture
-ggsave("Analysis files/coefplot_1_2.jpg", plot = coefplot_1_2,
-       width = 25, height = 15, units = c("cm"), bg = "white")
-
 ```
 
 
@@ -473,59 +436,113 @@ print(xtable(model_2_out,
 
 ```
 
-####  Bernoulli Employed Type Coefficient Plots for Migration model
+####  Bernoulli Employed Variables
 
 ```{r}
 # Coefficient Plots for the first three Bernoulli variables.
 
 model_2_1 <- model_2_out[1:3, ]
-model_2_1$Outcome <- c("Usually Employed",
-                         "Currently Employed",
-                         "Currently Self Employed")
-
-
-coefplot_2_1 <- model_2_1 %>%
-  ggplot(aes(x = as.numeric(ATT), y = as.factor(Outcome)))+
-  geom_point(size = 3)+
-  geom_errorbarh(aes(xmin = as.numeric(lci),
-                     xmax = as.numeric(uci)),
-                 height = 0.2,
-                 col = "black",
-                 linewidth = 1.1)+
-  geom_vline(xintercept = 0, linetype = 2)+
-  labs(x = "ATT", title = "Doubly Robust DiD Estimates (Controlling for Migration)",
-       subtitle = "The coefficient plot shows 95% confidence intervals.",
-       y = "")+
-  theme_minimal(base_size = 18)
-
-# Output the picture.
-ggsave("Analysis files/coefplot_2_1.jpg", plot = coefplot_2_1,
-       width = 30, height = 15, units = c("cm"), bg = "white")
+model_2_1$Outcome <- c("Usually Employed (m)",
+                         "Currently Employed (m)",
+                         "Currently Self Employed (m)")
 
 
 ```
 
-#### Work Hour Coefficient Plots (Controlling for migration)
+#### Work Hours for the Migration Model.
 
 ```{r}
 model_2_2 <- model_2_out[c(4, 6),]
-model_2_2$Outcomes <- c("Work Hours", "Self Employment Hours")
+model_2_2$Outcomes <- c("Work Hours (m)", "Self Employment Hours (m)")
 
-coefplot_2_2 <- model_2_2 %>% 
+```
+
+### Coef Plot for Bernoulli Employed variables.
+
+```{r}
+overall_1 <- rbind(model_1_1, model_2_1)
+overall_1 <- overall_1 %>% 
+  mutate(
+    migration = factor(rep(c(0,1), each = 3), labels = c("No", "Yes"))
+  )
+
+
+coefplot_1 <- overall_1 %>% 
+  ggplot(aes(x = as.numeric(ATT), y = Outcome))+
+  geom_point(size = 3)+
+  geom_errorbarh(aes(xmin = as.numeric(lci), xmax = as.numeric(uci),
+                     color = migration),
+                 height = 0.3, linewidth = 1.1)+
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(x = "ATT", y = "", 
+       title = "Doubly Robust DiD Estimates",
+       subtitle = "The coefficient plot shows 95% confidence intervals")+
+  scale_color_manual(
+    values = c("No" = "blue", "Yes" = "red"), 
+    name = "Controlled for Migration"
+  )+
+  theme_minimal(base_size = 16)
+
+
+ggsave("Analysis files/coefplot_1.jpg", plot = coefplot_1 ,
+       width = 35, height = 15, units = c("cm"), bg = "white")
+
+```
+
+### Work Hours Coefficient Plot.
+
+```{r}
+overall_2 <- rbind(model_1_2, model_2_2)
+overall_2 <- overall_2 %>% 
+  mutate(
+    migration = factor(rep(c(0,1), each = 2), labels = c("No", "Yes"))
+  )
+
+
+coefplot_2 <- overall_2 %>% 
   ggplot(aes(x = as.numeric(ATT), y = Outcomes))+
   geom_point(size = 3)+
-  geom_errorbarh(aes(xmin = as.numeric(lci), xmax = as.numeric(uci)),
-                 height = 0.2, color = "black", linewidth = 1.1)+
+  geom_errorbarh(aes(xmin = as.numeric(lci), xmax = as.numeric(uci),
+                     color = migration),
+                 height = 0.3, linewidth = 1.1)+
   geom_vline(xintercept = 0, linetype = 2) +
-  labs(x = "ATT (hours)", y = "", 
-       title = "Doubly Robust DiD Estimates (Controlling for Migration)",
+  labs(x = "ATT", y = "", 
+       title = "Doubly Robust DiD Estimates",
        subtitle = "The coefficient plot shows 95% confidence intervals")+
-  theme_minimal(base_size = 18) 
+  scale_color_manual(
+    values = c("No" = "blue", "Yes" = "red"), 
+    name = "Controlled for Migration"
+  )+
+  theme_minimal(base_size = 16)
+
+ggsave("Analysis files/coefplot_2.jpg", plot = coefplot_2 ,
+       width = 35, height = 15, units = c("cm"), bg = "white")
 
 
-# Output the picture
-ggsave("Analysis files/coefplot_2_2.jpg", plot = coefplot_2_2,
-       width = 30, height = 15, units = c("cm"), bg = "white")
+```
+
+# Seasonal Variations.
+
+### Dry : Magh, Falgun, Chaitra, Baisakh.
+```{r}
+c_merged_dry <- c_merged %>% filter(season == "Dry")
+c_merged_rainy <- c_merged %>% filter(season == "Rainy")
+c_merged_winter <- c_merged %>% filter(season == "Winter")
+
+# Model Dry
+model_dry <- output_dr(vars, c_merged_dry) %>% 
+  rownames_to_column(var = "variables")
+
+# Model Rainy
+model_rainy <- output_dr(vars, c_merged_rainy) %>% 
+  rownames_to_column(var = "variables")
+
+# Rainy season has a humongous negative effect.
+# Winter season actually has a positive effect.
+
+# Model Winter
+model_winter <- output_dr(vars, c_merged_winter) %>% 
+  rownames_to_column(var = "variables")
 
 
 ```
