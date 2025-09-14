@@ -7,8 +7,23 @@
 # Ignore the Data Directory.
 
 Data/
-Analysis files/
 fits/
 
 # Ignore Readme.html
 README.html
+
+# Ignore the baggage of local latex build.
+
+*.aux
+*.bbl
+*.blg
+*.log
+*.bcf
+*.synctex.gz
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.xml
