@@ -9,7 +9,10 @@ library(sf)
 library(tidyverse)
 library(xtable)
 library(tidybayes)
+library(patchwork)
 
+theme_set(theme_minimal()+
+            theme(panel.grid = element_blank()))
 ```
 
 ## 1. Read district names and geo-spatial information from the shape file.
@@ -162,6 +165,8 @@ c_merged_3 <- c_merged_all %>% filter(
 ```{r}
 c_merged_3 %>% count(nlfs_year, distname)
 
+
+
 # What proportion of people surveyed in 2008 were permanent residents and did not move to the place due to the conflict?
 c_merged_3 %>% filter(nlfs_year == 2008) %>% 
   group_by(distname) %>% summarize(mean(perma_resident))
@@ -169,11 +174,16 @@ c_merged_3 %>% filter(nlfs_year == 2008) %>%
 # Assigning Treatment and Control.
 c_merged_3 <- c_merged_3 %>% mutate(
   treatment_s = ifelse(district_abbrev == "argh", 1, 0),
-  post = ifelse(nlfs_year == 2008, 1, 0)
+  post = ifelse(nlfs_year == 2008, 1, 0),
+  cd_per_10000 = (best_est/popn_2001) * 10000
 )
 
 # Only for 1998 (post = 0)
 c_merged_3_98 <- c_merged_3 %>% filter(post == 0)
+
+# Deaths difference
+c_merged_3 %>% group_by(post, treatment_s) %>% 
+  summarize(mean(cd_per_10000), mean(deaths_until_98))
 
 ```
 
@@ -322,6 +332,15 @@ t1_out
 
 Normal intercept-only model.
 
+Group
+1  = 1998 Gulmi
+2 = 2008 Gulmi
+3 = 1998 Arghakhanchi
+4 = 2008 Arghakhanchi
+
+Death Difference: 1.92 and 11.7 in 2008.
+In 1998, both are 0 or close to 0. 
+
 ```{r}
 c_merged_3 <- c_merged_3 %>% mutate(
   group = factor(1 + post + 2 * treatment_s)
@@ -383,4 +402,226 @@ post_1.2 %>%
 For Hours Worked, some of the distributions that can be used are:
 
 1. Zero-inflated Poisson Regression.
-2. 
+3. Hurdle Log-Normal Distribution
+4. Zero-inflated Binomial Distribution.
+
+### Zero-inflated Binomial.
+
+Intercept only model.
+
+```{r}
+map_1.3 <- brm(
+  data = c_merged_3,
+  family = binomial,
+  work_hours_outside | trials(84) ~ 1,
+  prior = c(
+    prior(normal(0, 1.5), class = Intercept)
+  ),
+  
+  iter = 2000, warmup = 1000, chains = 4, cores = 4,
+  file = "fits/map1.3"
+)
+```
+
+Group-wise Model.
+
+```{r}
+map_1.4 <- brm(
+  data = c_merged_3,
+  family = binomial,
+  work_hours_outside | trials(84) ~ 0 + group,
+  prior = c(
+    prior(normal(0, 1.5), class = b)
+  ),
+  
+  iter = 2000, warmup = 1000, chains = 4, cores = 4,
+  file = "fits/map1.4"
+)
+
+```
+
+### Hurdled Log-normal model.
+
+```{r}
+c_merged_3 <- c_merged_3 %>% mutate(
+  wh = ifelse(work_hours_outside == 0, 0, work_hours_outside),
+  log_wh = log1p(work_hours_outside),
+  is_zero = work_hours_outside == 0
+)
+```
+
+#### Output a histogram of workhours outside to show why we need a hurdled log normal model.
+
+```{r}
+wh_hist <- c_merged_3 %>% 
+  ggplot(aes(wh))+
+  geom_histogram(aes(fill = is_zero),binwidth = 1.5)+
+  scale_fill_manual(values = c("TRUE" = "skyblue", "FALSE" = "red"),
+                    name = "Is Zero")+
+  labs(x = "Work Hours", y = "Frequency",
+       title = "Work Hours Histogram")+
+  theme(legend.position = "bottom")
+
+log_wh_hist <- c_merged_3 %>% 
+  ggplot(aes(log_wh))+
+  geom_histogram(aes(fill = is_zero), binwidth = 0.08)+
+  scale_fill_manual(values = c("TRUE" = "skyblue", "FALSE" = "red"),
+                    name = "Is Zero")+
+  labs(x = "Work Hours", y = "Frequency",
+       title = "Log Work Hours Histogram")+
+  theme(legend.position = "bottom")
+
+plot_hist <- (wh_hist | log_wh_hist)
+
+ggsave("Analysis files/wh_histogram.jpg", plot = plot_hist,
+       width = 40, height = 20, units = c("cm"), bg = "white")
+```
+
+
+Model 1 : Intercept only model:
+
+```{r}
+model_log_1 <- brm(
+  data = c_merged_3,
+  family = hurdle_lognormal,
+  bf( wh ~ 1,
+      hu ~ 1),
+  prior = c(
+    prior(lognormal(3, 0.5), class = Intercept, lb = 0),
+    prior(normal(0, 1), dpar = "hu", class = Intercept)
+  ),
+  iter = 2000, warmup = 1000, chains = 4, cores = 4,
+  file = "fits/model_log_1"
+)
+
+```
+
+Model 2 : Model with groups:
+
+```{r}
+model_log_2 <- brm(
+  data = c_merged_3,
+  family = hurdle_lognormal,
+  bf(wh ~ 0 + group,
+      hu ~ 0 + group),
+  prior = c(
+    prior(lognormal(3, 0.5), class = b, lb = 0),
+    prior(normal(0, 1), dpar = "hu", class = b)
+  ),
+  iter = 2000, warmup = 1000, chains = 4, cores = 4,
+  file = "fits/model_log_2"
+)
+
+```
+
+#### Coefficient Plots and overall DiD contrast for model 2
+
+```{r}
+names <- c("1998 Gulmi", "2008 Gulmi", "1998 Arghakhanchi", "2008 Arghakhanchi")
+
+post_log_2 <- as_draws_df(model_log_2) %>% 
+  data.frame()
+
+# Coefficient Plot.
+
+coefplot_map <- post_log_2 %>% 
+  select(contains("b_group")) %>% 
+  set_names("1998 Gulmi", "2008 Gulmi",
+            "1998 Arghakhanchi", "2008 Arghakhanchi") %>% 
+  pivot_longer(everything()) %>% 
+  mutate(
+    work_hours = exp(value),
+    treatment = factor(name, levels = names),
+    low_conflict = ifelse( grepl("Gulmi", treatment), 
+                           "Low Conflict","High Conflict")
+  ) %>% 
+  
+  ggplot(aes(x = treatment, y = work_hours)) +
+  stat_pointinterval(
+    aes(color = low_conflict),
+    .width = .95,
+    linewidth = 5,
+    point_size = 5
+  ) +
+  scale_color_manual(
+    values = c("Low Conflict" = "seagreen", "High Conflict" = "red3"),
+    name = ""
+  )+
+  labs( y = "", x = "", subtitle = "Work Hours")+
+  theme_minimal(base_size = 18)+
+            theme(panel.grid = element_blank(),
+                  legend.position = "bottom")
+  
+ggsave("Analysis files/coefplot_map.jpg", plot = coefplot_map,
+       width = 35, height = 20, units = c("cm"), bg = "white")
+
+```
+
+Overall DiD Contrast for Work Hours.
+
+```{r}
+post_log_2 %>% 
+  select(contains("b_group")) %>% 
+  mutate(did_r = (b_group4 - b_group2) - (b_group3 - b_group1)) %>% 
+  mutate(
+    did_a = (exp(b_group4) - exp(b_group2)) -
+      (exp(b_group3) - exp(b_group1))
+  ) %>% pull(did_a) %>% 
+  mean_qi()
+```
+
+#### Coefficient Plots for model 2, for the hurdle part.
+
+```{r}
+coefplot_map_hu <- post_log_2 %>% 
+  select(contains("b_hu")) %>% 
+  set_names("1998 Gulmi", "2008 Gulmi",
+            "1998 Arghakhanchi", "2008 Arghakhanchi") %>% 
+  pivot_longer(everything()) %>% 
+  mutate(
+    probability = inv_logit_scaled(value),
+    treatment = factor(name, levels = names),
+    low_conflict = ifelse( grepl("Gulmi", treatment), 
+                           "Low Conflict","High Conflict")
+  ) %>% 
+  
+  ggplot(aes(x = treatment, y = probability)) +
+  stat_pointinterval(
+    aes(color = low_conflict),
+    .width = .95,
+    point_size = 5,
+    linewidth = 5
+  ) +
+  scale_color_manual(
+    values = c("Low Conflict" = "seagreen", "High Conflict" = "red3"),
+    name = ""
+  )+
+  labs( y = "", x = "", subtitle = "Probability of zero hours worked")+
+  theme_minimal(base_size = 18)+
+            theme(panel.grid = element_blank(),
+                  legend.position = "bottom")
+
+ggsave("Analysis files/coefplot_map_hu.jpg", plot = coefplot_map_hu,
+       width = 35, height = 20, units = c("cm"), bg = "white")
+
+  
+```
+
+
+Overall Contrast for seeing zero hours worked.
+
+```{r}
+post_log_2 %>% 
+  select(contains("b_hu")) %>% 
+  mutate(did_r = (b_hu_group4 - b_hu_group2) - (b_hu_group3 - b_hu_group1)) %>% 
+  mutate(
+    did_a = (inv_logit_scaled(b_hu_group4) - inv_logit_scaled(b_hu_group2)) -
+      (inv_logit_scaled(b_hu_group3) - inv_logit_scaled(b_hu_group1))
+  ) %>% pull(did_a) %>% 
+  mean_qi()
+
+```
+h
+
+
+
