@@ -12,6 +12,10 @@ fits/
 # Ignore Readme.html
 README.html
 
+#ignore the org files.
+*.org
+*.org~
+
 # Ignore the baggage of local latex build.
 
 *.aux
