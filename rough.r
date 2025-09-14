@@ -344,3 +344,127 @@ model_1_2 %>%
     axis.text.x = element_text(size = 14),
     axis.text.y = element_text(size = 14)
   )
+
+
+# Overall Plot (1)
+overall_1 <- rbind(model_1_1, model_2_1)
+overall_1 <- overall_1 %>% 
+  mutate(
+    migration = factor(rep(c(0,1), each = 3), labels = c("No", "Yes"))
+  )
+
+
+overall_1 %>% 
+  ggplot(aes(x = as.numeric(ATT), y = Outcome))+
+  geom_point(size = 2)+
+  geom_errorbarh(aes(xmin = as.numeric(lci), xmax = as.numeric(uci),
+                     color = migration),
+                 height = 0.2, linewidth = 1.1)+
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(x = "ATT", y = "", 
+       title = "Doubly Robust DiD Estimates",
+       subtitle = "The coefficient plot shows 95% confidence intervals")+
+  scale_color_manual(
+    values = c("No" = "red", "Yes" = "blue"), 
+    name = "Controlled for Migration"
+  )+
+  theme_minimal(base_size = 16)
+
+
+
+
+
+# Overall Plot (2)
+
+overall_2 <- rbind(model_1_2, model_2_2)
+overall_2 <- overall_2 %>% 
+  mutate(
+    migration = factor(rep(c(0,1), each = 2), labels = c("No", "Yes"))
+  )
+
+
+overall_2 %>% 
+  ggplot(aes(x = as.numeric(ATT), y = Outcomes))+
+  geom_point(size = 2)+
+  geom_errorbarh(aes(xmin = as.numeric(lci), xmax = as.numeric(uci),
+                     color = migration),
+                 height = 0.2, linewidth = 1.1)+
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(x = "ATT", y = "", 
+       title = "Doubly Robust DiD Estimates",
+       subtitle = "The coefficient plot shows 95% confidence intervals")+
+  scale_color_manual(
+    values = c("No" = "red", "Yes" = "blue"), 
+    name = "Controlled for Migration"
+  )+
+  theme_minimal(base_size = 16)
+
+
+## Group d1 summary statistics by season.
+
+d1_select %>% group_by(season) %>% 
+  summarize(mean(usually_emp))
+
+# How much c_merged_3 is 0?
+
+c_merged_3 %>% 
+  filter(age >=21) %>% 
+  mutate(is_zero = work_hours_outside == 0) %>% 
+  count(is_zero) %>% 
+  mutate(prop = n/sum(n))
+
+
+
+
+
+# Playing around with log-normal
+c_merged_3 <- c_merged_3 %>% mutate(
+  wh = ifelse(work_hours_outside == 0, 0, work_hours_outside),
+  log_wh = log1p(work_hours_outside),
+  is_zero = work_hours_outside == 0
+)
+
+c_merged_3 %>% 
+  ggplot(aes(x = log_wh))+
+  geom_histogram(binwidth = 0.1)+
+  theme_minimal()
+
+model_log_1 <- brm(
+  data = c_merged_3,
+  family = hurdle_lognormal,
+  bf( wh ~ 1,
+      hu ~ 1),
+  prior = c(
+    prior(lognormal(3, 0.5), class = Intercept, lb = 0),
+    prior(normal(0, 1), dpar = "hu", class = Intercept)
+  ),
+  iter = 2000, warmup = 1000, chains = 4, cores = 4,
+  file = "fits/model_log_1"
+)
+
+
+model_log_2 <- brm(
+  data = c_merged_3,
+  family = hurdle_lognormal,
+  bf(wh ~ 0 + group,
+      hu ~ 0 + group),
+  prior = c(
+    prior(lognormal(3, 0.5), class = b, lb = 0),
+    prior(normal(0, 1), dpar = "hu", class = b)
+  ),
+  iter = 2000, warmup = 1000, chains = 4, cores = 4,
+  file = "fits/model_log_2"
+)
+
+
+tibble(x = c("Hello", "Meh", "Hello")) %>%
+  mutate(
+    f = grepl("Hello", x)
+  )
+
+a <- lm(work_hours_outside ~ 1 + post + treatment_s + post*treatment_s,
+        data = c_merged_3)
+summary(a)
+
+post_log_2 %>% ggplot(aes(x = exp(b_group2)))+
+  geom_density(adjust = 0.7)
