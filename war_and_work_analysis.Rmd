@@ -523,7 +523,9 @@ ggsave("Analysis files/coefplot_2.jpg", plot = coefplot_2 ,
 
 # Seasonal Variations.
 
-### Dry : Magh, Falgun, Chaitra, Baisakh.
+Dry : Magh, Falgun, Chaitra, Baisakh.
+Winter : Ashoj Kartik Mangsir Poush
+Rainy :Jestha, Ashaar, Saaun, Bhadra
 ```{r}
 c_merged_dry <- c_merged %>% filter(season == "Dry")
 c_merged_rainy <- c_merged %>% filter(season == "Rainy")

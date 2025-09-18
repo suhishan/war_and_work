@@ -480,6 +480,8 @@ ggsave("Analysis files/wh_histogram.jpg", plot = plot_hist,
 
 Model 1 : Intercept only model:
 
+[] Remember to do exp(mu + (sigma^2)/2)
+
 ```{r}
 model_log_1 <- brm(
   data = c_merged_3,
@@ -524,19 +526,18 @@ post_log_2 <- as_draws_df(model_log_2) %>%
 
 # Coefficient Plot.
 
-coefplot_map <- post_log_2 %>% 
-  select(contains("b_group")) %>% 
+coefplot_map <- post_log_2 %>%
+  select(contains("b_group") | contains("sigma")) %>% 
   set_names("1998 Gulmi", "2008 Gulmi",
-            "1998 Arghakhanchi", "2008 Arghakhanchi") %>% 
-  pivot_longer(everything()) %>% 
+            "1998 Arghakhanchi", "2008 Arghakhanchi", "Sigma") %>% 
+  pivot_longer(1:4) %>% 
   mutate(
-    work_hours = exp(value),
+    work_hours = exp(value + (Sigma^2)/2),
     treatment = factor(name, levels = names),
     low_conflict = ifelse( grepl("Gulmi", treatment), 
                            "Low Conflict","High Conflict")
   ) %>% 
-  
-  ggplot(aes(x = treatment, y = work_hours)) +
+   ggplot(aes(x = treatment, y = work_hours)) +
   stat_pointinterval(
     aes(color = low_conflict),
     .width = .95,
@@ -547,11 +548,11 @@ coefplot_map <- post_log_2 %>%
     values = c("Low Conflict" = "seagreen", "High Conflict" = "red3"),
     name = ""
   )+
-  labs( y = "", x = "", subtitle = "Work Hours")+
+  labs( y = "", x = "", subtitle = "Work Hours conditional on Work Hours > 0")+
   theme_minimal(base_size = 18)+
-            theme(panel.grid = element_blank(),
-                  legend.position = "bottom")
-  
+            theme(legend.position = "bottom")
+
+
 ggsave("Analysis files/coefplot_map.jpg", plot = coefplot_map,
        width = 35, height = 20, units = c("cm"), bg = "white")
 
@@ -560,13 +561,19 @@ ggsave("Analysis files/coefplot_map.jpg", plot = coefplot_map,
 Overall DiD Contrast for Work Hours.
 
 ```{r}
+# function that takes in E(log(x)) and SD(log(x)) and returns E(x)
+mu_ln <- function(mu, sigma) {
+  return (exp(mu + (sigma^2)/2))
+}
+
 post_log_2 %>% 
-  select(contains("b_group")) %>% 
+  select(contains("b_group") | contains("sigma")) %>% 
   mutate(did_r = (b_group4 - b_group2) - (b_group3 - b_group1)) %>% 
   mutate(
-    did_a = (exp(b_group4) - exp(b_group2)) -
-      (exp(b_group3) - exp(b_group1))
-  ) %>% pull(did_a) %>% 
+    did_a = (mu_ln(b_group4, sigma) - mu_ln(b_group2, sigma)) -
+      (mu_ln(b_group3, sigma) - mu_ln(b_group1, sigma))
+  ) %>% 
+  pull(did_a) %>% 
   mean_qi()
 ```
 
@@ -598,8 +605,7 @@ coefplot_map_hu <- post_log_2 %>%
   )+
   labs( y = "", x = "", subtitle = "Probability of zero hours worked")+
   theme_minimal(base_size = 18)+
-            theme(panel.grid = element_blank(),
-                  legend.position = "bottom")
+            theme(legend.position = "bottom")
 
 ggsave("Analysis files/coefplot_map_hu.jpg", plot = coefplot_map_hu,
        width = 35, height = 20, units = c("cm"), bg = "white")
@@ -613,15 +619,21 @@ Overall Contrast for seeing zero hours worked.
 ```{r}
 post_log_2 %>% 
   select(contains("b_hu")) %>% 
-  mutate(did_r = (b_hu_group4 - b_hu_group2) - (b_hu_group3 - b_hu_group1)) %>% 
+  mutate(did_r = (b_hu_group4 - b_hu_group2) - 
+           (b_hu_group3 - b_hu_group1)) %>% 
   mutate(
-    did_a = (inv_logit_scaled(b_hu_group4) - inv_logit_scaled(b_hu_group2)) -
+    did_a = (inv_logit_scaled(b_hu_group4) - inv_logit_scaled(b_hu_group2))-
       (inv_logit_scaled(b_hu_group3) - inv_logit_scaled(b_hu_group1))
   ) %>% pull(did_a) %>% 
   mean_qi()
 
 ```
-h
+
+
+### Plot of prior vs posterior comparison.
+
+
+
 
 
 

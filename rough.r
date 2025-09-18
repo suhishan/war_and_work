@@ -468,3 +468,32 @@ summary(a)
 
 post_log_2 %>% ggplot(aes(x = exp(b_group2)))+
   geom_density(adjust = 0.7)
+
+post_log_2 %>%
+  select(contains("b_group") | contains("sigma")) %>% 
+  set_names("1998 Gulmi", "2008 Gulmi",
+            "1998 Arghakhanchi", "2008 Arghakhanchi", "Sigma") %>% 
+  pivot_longer(1:4) %>% 
+  mutate(
+    work_hours = exp(value + (Sigma^2)/2),
+    treatment = factor(name, levels = names),
+    low_conflict = ifelse( grepl("Gulmi", treatment), 
+                           "Low Conflict","High Conflict")
+  ) %>% 
+   ggplot(aes(x = treatment, y = work_hours)) +
+  stat_pointinterval(
+    aes(color = low_conflict),
+    .width = .95,
+    linewidth = 5,
+    point_size = 5
+  ) +
+  scale_color_manual(
+    values = c("Low Conflict" = "seagreen", "High Conflict" = "red3"),
+    name = ""
+  )+
+  labs( y = "", x = "", subtitle = "Work Hours")+
+  theme_minimal(base_size = 18)+
+            theme(panel.grid = element_blank(),
+                  legend.position = "bottom")
+  
+
