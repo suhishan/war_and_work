@@ -287,6 +287,38 @@ Results in Table 10 are consistent with, and in fact show stronger negative effe
 	\label{fig:coefplot_1_2}
 \end{figure}
 
+
+\subsection{Seasonal Decomposition}
+Work hours and the probability of employment depends of upon seasonal characteristics in an agricultural country like Nepal (more so during the 90s and the 2000s). Paddy, which is grown mostly in the Terai plains, is labor intensive during the monsoon months of Ashadh and Shrawan and in the harvesting month of Ashwin and Kartik. Winter and Dry seasons are amenable to various temperate fruits, vegetables and cash crops, such as cauliflowers, apples, wheat and tea. Such temporal differences in the need for labor-intensive employment is relevant because conflict in Nepal originated and afflicted districts in the Hill and the Mountainous belt more than districts in the Terai Belt\parencite{do2010geography}. This means that our earlier estimation of ATT only estimates an aggregate year-round effect of high-conflict. Decomposition of the ATT for rainy, winter and dry sub-samples of the NLFS dataset may provide us better insight into the mechanism through which conflict affects the labor supply.
+
+Fortunately, both NLFS I and II were spread out over an entire year to allow us to capture such seasonal variations. The allocation of months to seasons for both NLFS I and NLFS II is given below:
+
+\begin{table}[ht]
+	
+	\caption{Allocation of Months to Seasons for the NLFS}
+	\renewcommand{\arraystretch}{1.2}
+	\vspace{1em}
+	\centering{}%
+	\begin{tabular}{|c|c|c|c|}
+		\hline
+		\textbf{Season} & \textbf{Characteristic}& \textbf{Nepalese Calendar} & \textbf{Western Calendar}\\
+		\hline
+		1& Rainy & Jestha, Ashadh, Shrawan, Bhadra & mid-May to mid-Sep\\
+		\hline
+		2& Dry & Ashwin, Kartik, Mangsir, Poush & mid-Sep to mid-Jan \\
+		\hline
+		3& Winter & Magh, Falgun, Chaitra, Baisakh &  mid-Jan to mid-May\\
+		\hline
+	\end{tabular}
+\end{table}
+
+I partition the dataset into dry, winter, and rainy-only sample. This is done for two reasons:
+
+\begin{enumerate}
+	\item To decompose the ATT for dry, winter and rainy seasons.
+	\item The untreated counter factual for treated units is more plausible within each sub sample.
+\end{enumerate}
+
 \section{Robustness}
 There are some methodological and inferential concerns with the doubly robust DiD estimates in our setting:
 
@@ -346,12 +378,11 @@ The econometric model can be written as follows:
 $$\text{wh}_{i} \sim \text{hurdleLognormal}(hu_i, \mu_i)$$
 $$\mu_{i} = \alpha_{GID[i]}$$
 $$hu_{i} = \beta_{GID[i]}$$
-Priors:
 $$\alpha_{GID[i]} \sim \text{lognormal}(3, 0.5)$$
 $$\beta_{GID[i]} \sim \text{normal}(0, 1)$$
-where, for $GID[i], i = {1, 2, 3, 4}$ represents four interactions group ids: 1 = 1998 Gulmi (low-conflict); 2 = 1998 Arghakhanchi (high-conflict); 3 = 2008 Gulmi (low-conflict); 4 = 2008 Arghakhanchi (high-conflict).
+where, for $GID[i]$, $i = \{ 1, 2, 3, 4\}$ represents four interactions group ids: 1 = 1998 Gulmi (low-conflict); 2 = 1998 Arghakhanchi (high-conflict); 3 = 2008 Gulmi (low-conflict); 4 = 2008 Arghakhanchi (high-conflict).
 
-Here, $mu_i$ is the average work hours in the log scale, and $hu_i$ represents the probability of observing $0$ hours worked, which are estimated on the log and logit scales respectively.
+Here, $\mu_i$ is the average work hours (conditional on work hours $> 0$) in the log scale, and $hu_i$ represents the probability of observing $0$ hours worked, which are estimated on the log and logit scales respectively.
 
 
 
@@ -383,12 +414,22 @@ DiD Contrasts:
 	\begin{tabular}{c|c|c|c|}
 		& Estimate & lci& uci \tabularnewline
 		\hline 
-		Work Hours & $-12.55$ & $-18.37$ & $-6.61$ \tabularnewline
+		Work Hours & $-14.7$ & $-21.61$ & $-7.76$ \tabularnewline
 		Probability of zero (hurdle) & $0.02$ & $-0.057$ & $0.11$ \tabularnewline
 		\hline 
 	\end{tabular}
 \end{table}
 
+The group-wise interaction for the two-district comparison shows that heavily affected Arghakhanchi saw a significant drop in work hours. The Difference-in-Difference contrast estimates an average of 14 reduced work hours. But, as shown in Figure 6 and Table 14, there is no change in the probability of working zero hours, that is, no effect on inactivity. This points to under-employment rather than outright unemployment.
+
+The DiD contrast from this small two-district analysis is consistent with the large-sample results described earlier. While the size of the effect varies, the overall direction is the same: employment was negatively affected. In some heavily hit districts this meant unemployment, while in others it meant under-employment
+
+\section{Discussion}
+A decline in average work hours can result either from fewer people finding employment or from jobs requiring fewer hours, due to higher productivity or a shift toward types of work with lower time demands. Since the likelihood of being employed is largely unchanged, the more likely explanation is the latter.
+
+A decline in working hours is not inherently negative. From a labor supply perspective, if individuals voluntarily choose to work fewer hours in response to higher wages, while keeping their preferences constant, this may reflect rising productivity and improving economic conditions. However, when reduced hours are involuntary, maybe due to a lack of full-time opportunities or declining economic activity, the implications become concerning. In the context of Nepalese Civil War, it's difficult to interpret reductions in work hours as voluntary adjustments amid infrastructure destruction and uncertainty. Rather, the decline likely reflects a forced contraction in the availability of work, made worse by limited mobility due to fear of violence. Similarly, as alluded by \textcite{blattman2010civil}, military experience is a poor substitute for education and labor market experience. The young conscripts in the Nepalese Civil War may find it harder to integrate themselves in the labor market with reduced high-level education and employment experience.
+
+In terms of labor demand, being in a conflict-afflicted area is risky for firms, both in an economic sense of increased operational costs as well as the risk of physical danger. As a result, reduced investment, business closures, or relocation become plausible outcomes, which has negative effects on employment. On the other hand, if relatively underdeveloped, conflict-affected regions experienced convergence toward more developed, less-affected areas between 1998 and 2008, through shifts in industry composition, firm size, and labor demands, the productivity hypothesis cannot be ruled out.
 
 % References	
 \printbibliography
