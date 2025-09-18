@@ -1,0 +1,45 @@
+#### Overall thoughts to think and things to do:
+
+-   [ ] See results for treatment assignment based on total conflict deaths, and not conflict deaths for 10,000 people.
+
+-   [ ] See results for treatment assignment based on conflict deaths per 10,000 people, however, use the population metric from the 1991 Census
+
+-   [ ] Include the treatment/control conflict map in the tex file with conflict deaths per 10,000 people inside the district boundary listed.
+
+-   [ ] Write about the seasonal variation.
+
+-   [ ] Make coef-plots or other relevant/apt plots on the seasonal variation of the effects.
+
+#### Interpretation of the small sample results.
+
+The group-wise interaction setup for the two district comparison shows that highly-afflicted Arghakhanchi had significantly reduced work hours. The Difference-in-Difference contrast estimates an average of 14 reduced work hours. However, as per Figure 6 and Table 14, we do not see any effect on the probability of working zero hours i.e. the probability of inactivity. This is evidence of under-employment rather than unemployment.
+
+The DiD contrast from small sample two district analysis is congruent with the large sample analysis outlined and described in the previous sections. While the magnitude of the effect has differed, overall the general direction of the evidence points toward a negative employment effect, whereby some highly-afflicted districts experienced unemployment, while others had to deal with under-employment.
+
+#### The probable mechanism behind the results:
+
+A decline in average work hours can result either from fewer people finding employment or from jobs requiring fewer hours, due to higher productivity or a shift toward types of work with lower time demands. Since the likelihood of being employed is largely unchanged, the more likely explanation is the latter.
+
+A decline in working hours is not inherently negative. From a labor supply perspective, if individuals voluntarily choose to work fewer hours in response to higher wages, while keeping their preferences constant, this may reflect rising productivity and improving economic conditions. However, when reduced hours are involuntary, maybe due to a lack of full-time opportunities or declining economic activity, the implications become concerning. In the context of Nepalese Civil War, it's difficult to interpret reductions in work hours as voluntary adjustments amid infrastructure destruction and uncertainity. Rather, the decline likely reflects a forced contraction in the availability of work, made worse by limited mobility due to fear of violence. Similarly, as alluded by [[blattman2010civil](#LyXCite-blattman2010civil)], military experience is a poor substitute for education and labor market experience. The young conscripts in the Nepalese Civil War may find it harder to intergrate themselves in the labor market with reduced high-level education and employment experience.
+
+In terms of labor demand, being in a conflict-afflicted area is risky for firms, both in an economic sense of increased operational costs as well as the risk of physical danger. As a result, reduced investment, business closures, or relocation become plausible outcomes, which has negative effects on employment. On the other hand, if relatively underdeveloped, conflict-affected regions experienced convergence toward more developed, less-affected areas between 1998 and 2008, through shifts in industry composition, firm size, and labor demands, the productivity hypothesis cannot be ruled out.
+
+### Understanding the seasonal variation.
+
+Results:
+
+1.  For dry seasons, the negative employment effect matches the overall negative effect of 4 to 5 less work hours. There is however lower probability of being currently or usually employed (note : the standard errors are bigger, likely due to lower N)
+2.  For the winter season, the employment effect is positive. People in high-afflicted regions have higher worked hours and are more likely to be currently and usually employed.
+    1.  High conflict districts were mostly part of Nepal's hills and the mountainous belt. This means that their work cycle may not have followed the Jestha to Kartik paddy cycle of the agricultural Terai. As such, we see a positive discrepancy in work hours and employment probability.
+3.  We see the largest negative effect in the rainy season, with average negative employment effect of 8.5 hours for overall work, and 11 less work hours for work categorized as self-employment.
+
+*Why do we want to look at seasonal DiD, or heterogeneous treatment DiD?*
+
+Work hours and the probability of employment depends of upon seasonal characteristics in an agricultural country like Nepal (more so during the 90s and the 2000s). Paddy, which is grown mostly in the Terai plains, is labor intensive during the monsoon months of Ashaar and Shrawan and in the harvesting month of Ashoj and Kartik. Winter and Dry seasons are amenable to various temperate fruits, vegetables and cash crops, such as cauliflowers, apples, wheat and tea. Such temporal differences in the need for labor-intensive employment is relevant because conflict in Nepal originated and afflicted districts in the Hill and the Mountainous belt more than districts in the Terai Belt. (Do and Iyer). This means that our earlier estimation of ATT only estimates an aggregate year-round effect of high-conflict. Decomposition of the ATT for rainy, winter and dry sub-samples of the NLFS dataset may provide us better insight into the mechanism through which conflict affects the labor supply.
+
+Fortunately, both NLFS I and II were spread out over an entire year to allow us to capture such seasonal variations. The allocation of months to seasons for both NLFS I and NLFS II is given below:
+
+I partition the dataset into dry, winter, and rainy-only sample. This is done for two reasons:
+
+1.  To decompose the ATT for dry, winter and rainy seasons.
+2.  The untreated counter factual for treated units is more plausible within each sub sample.
