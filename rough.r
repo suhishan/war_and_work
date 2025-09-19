@@ -497,3 +497,40 @@ post_log_2 %>%
                   legend.position = "bottom")
   
 
+# Write a function to produce drdid .tex files.
+
+model_to_tex <- function(model_name, caption, file_name) {
+  # variable names.
+  outcome_var_names <- c(
+  usually_emp = "Usually Employed",
+  currently_emp_out = "Currently Employed",
+  currently_selfemp_out = "Currently Self-employed",
+  work_hours_outside = "Work Hours",
+  work_hours_outside_std = "Work Hours (std)",
+  selfemp_hours_outside = "Self Employment Hours",
+  selfemp_hours_outside_std = "Self Employment Hours (std)"
+)
+  model_name <- model_name %>% 
+  mutate(variables = outcome_var_names[variables]) %>% 
+  column_to_rownames("variables")
+ 
+  print(xtable(model_name, 
+               caption = paste(
+                 "Doubly Robust DiD estimates of ATT (",
+                  caption, ")", sep = "" )
+               ), 
+      type = "latex",
+      file = paste0("Analysis files/", file_name,".tex"),
+      booktabs = T,
+      )
+  
+  return (model_name)
+}
+
+model_to_tex(model_dry,"Dry Season", "model_dry" )
+
+a <- "Hello"
+paste("Doubly Robust DiD estimates of ATT (",
+                  a, ")", sep = "")
+
+paste0("Analysis files/","model_1", ".tex")

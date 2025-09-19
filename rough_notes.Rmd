@@ -6,7 +6,7 @@
 
 -   [ ] Include the treatment/control conflict map in the tex file with conflict deaths per 10,000 people inside the district boundary listed.
 
--   [ ] Write about the seasonal variation.
+-   [x] Write about the seasonal variation.
 
 -   [ ] Make coef-plots or other relevant/apt plots on the seasonal variation of the effects.
 
