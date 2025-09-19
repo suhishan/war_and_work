@@ -140,16 +140,6 @@ Clear Differences when deaths_until_98 is 0 or very small.
 c_merged_all <- left_join(nlfs, c_collapsed_2, 
                           by = c("district_abbrev"))
 
-# Rukum Rolpa Pyuthan Baglung.
-c_merged_1 <- c_merged_all %>% filter(
-  district_abbrev %in% c("ruku","rolp", "pyut", "bagl")
-)
-
-#Tanahu and Lamjung
-c_merged_2 <- c_merged_all %>% filter(
-  district_abbrev %in% c("tana", "lamj")
-) 
-
 #Gulmi and Arghakhanchi
 
 c_merged_3 <- c_merged_all %>% filter(
@@ -158,18 +148,12 @@ c_merged_3 <- c_merged_all %>% filter(
 ```
 
 
-## Let's go with Gulmi and Arghakhanchi.
+##  Gulmi and Arghakhanchi.
 
 ### Sample Sizes table.
 
 ```{r}
 c_merged_3 %>% count(nlfs_year, distname)
-
-
-
-# What proportion of people surveyed in 2008 were permanent residents and did not move to the place due to the conflict?
-c_merged_3 %>% filter(nlfs_year == 2008) %>% 
-  group_by(distname) %>% summarize(mean(perma_resident))
 
 # Assigning Treatment and Control.
 c_merged_3 <- c_merged_3 %>% mutate(

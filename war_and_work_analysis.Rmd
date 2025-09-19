@@ -316,39 +316,10 @@ ggsave("Analysis files/ps_overlap.jpg", plot = ps_small_sample,
 
 
 
-# Doubly Robust DiD function:
+# Doubly Robust DiD :
 
 ## Model 1 (the standard normal model)
 
-```{r}
-dr <- function(v, d){
-  a <- drdid(yname = v, tname = "post", idname = "id",
-             dname = "treatment_s",
-             xformla = ~ hindu + brahmin_chhetri + 
-               urbrur + sex + poverty_rate,
-             data = d, panel = FALSE, boot = F, nboot = 199)
-  
-  out =  round(data.frame(a[1:4]), 3)
-  
-  return (out)
-  
-}
-
-# Outcome Variables.
-
-vars <- c("usually_emp", "currently_emp_out",
-          "currently_selfemp_out",
-          "work_hours_outside", "work_hours_outside_std"
-          ,"selfemp_hours_outside","selfemp_hours_outside_std")
-
-output_dr <- function(vars, d) {
-  b <- sapply(vars, dr, d)
-  return (data.frame(t(b)))
-}
-
-```
-
-## Model 1 : The conventional model.
 ```{r}
 
 model_1 <- output_dr(vars, c_merged) %>% 
@@ -356,35 +327,13 @@ model_1 <- output_dr(vars, c_merged) %>%
 
 ```
 
-### Output Model 1 in a tex format.
+### Output Model 1
 
 ```{r}
-outcome_var_names <- c(
-  usually_emp = "Usually Employed",
-  currently_emp_out = "Currently Employed",
-  currently_selfemp_out = "Currently Self-employed",
-  work_hours_outside = "Work Hours",
-  work_hours_outside_std = "Work Hours (std)",
-  selfemp_hours_outside = "Self Employment Hours",
-  selfemp_hours_outside_std = "Self Employment Hours (std)"
-)
-
-model_1_out <- model_1 %>% 
-  mutate(variables = outcome_var_names[variables]) %>% 
-  column_to_rownames("variables")
-
-
-print(xtable(model_1_out, caption = "Doubly Robust DiD estimates of ATT"), 
-      type = "latex",
-      file = "Analysis files/model_1.tex",
-      booktabs = T,
-      )
-
+model_1_out <- model_to_tex(model_1, "Overall", "model_1")
 ```
 
-### Draw Coefficient Plots.
-
-#### Employed/Unemployed Statuses
+#### Employed/Unemployed Statuses for Coefficient Plots
 
 ```{r}
 # Coefficient Plots for the first three Bernoulli variables.
@@ -393,7 +342,6 @@ model_1_1 <- model_1_out[1:3, ]
 model_1_1$Outcome <- c("Usually Employed",
                          "Currently Employed",
                          "Currently Self Employed")
-
 ```
 
 #### Work Hours 
@@ -414,29 +362,16 @@ c_merged_p <- c_merged %>% filter(post == 0 |
 model_2 <- output_dr(vars, c_merged_p) %>% 
   rownames_to_column(var = "variables")
 
-model_2
 
 ```
-
 
 ### Output the migration model.
 
 ```{r}
-model_2_out <- model_2 %>% 
-  mutate(variables = outcome_var_names[variables]) %>% 
-  column_to_rownames("variables")
-
-print(xtable(model_2_out,
-             caption = "Doubly Robust DiD estimates
-             of ATT accounting for migration"), 
-      type = "latex",
-      file = "Analysis files/model_2.tex",
-      booktabs = T,
-      )
-
+model_2_out <- model_to_tex(model_2, "Accounting for migration", "model_2")
 ```
 
-####  Bernoulli Employed Variables
+###  Bernoulli Employed Variables for Coefficient Plots.
 
 ```{r}
 # Coefficient Plots for the first three Bernoulli variables.
@@ -445,8 +380,6 @@ model_2_1 <- model_2_out[1:3, ]
 model_2_1$Outcome <- c("Usually Employed (m)",
                          "Currently Employed (m)",
                          "Currently Self Employed (m)")
-
-
 ```
 
 #### Work Hours for the Migration Model.
@@ -498,7 +431,6 @@ overall_2 <- overall_2 %>%
     migration = factor(rep(c(0,1), each = 2), labels = c("No", "Yes"))
   )
 
-
 coefplot_2 <- overall_2 %>% 
   ggplot(aes(x = as.numeric(ATT), y = Outcomes))+
   geom_point(size = 3)+
@@ -526,11 +458,18 @@ ggsave("Analysis files/coefplot_2.jpg", plot = coefplot_2 ,
 Dry : Magh, Falgun, Chaitra, Baisakh.
 Winter : Ashoj Kartik Mangsir Poush
 Rainy :Jestha, Ashaar, Saaun, Bhadra
+
 ```{r}
 c_merged_dry <- c_merged %>% filter(season == "Dry")
 c_merged_rainy <- c_merged %>% filter(season == "Rainy")
 c_merged_winter <- c_merged %>% filter(season == "Winter")
 
+
+```
+
+### Run all three models:
+
+```{r}
 # Model Dry
 model_dry <- output_dr(vars, c_merged_dry) %>% 
   rownames_to_column(var = "variables")
@@ -547,5 +486,14 @@ model_winter <- output_dr(vars, c_merged_winter) %>%
   rownames_to_column(var = "variables")
 
 
+```
+
+
+### Output all three models.
+
+```{r}
+model_to_tex(model_dry, "Dry Season", "model_dry")
+model_to_tex(model_rainy, "Rainy Season", "model_rainy")
+model_to_tex(model_winter, "Winter Season", "model_winter")
 ```
 
