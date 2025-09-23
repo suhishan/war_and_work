@@ -52,6 +52,8 @@
 	
 % Section : Abstract
 \begin{abstract}
+	Although macro-economic consequences of Nepal's decade-long Maoist Insurgency are well-documented, macroeconomic effects remain less explored. This study examines the labor-market consequences of Nepal's Maoist Conflict using a difference-in-differences design. Variations come from a) classification of districts into high and low-conflict based on casualties, b) comparing Nepal Labour Force Survey I (1998, pre-period) with NLFS II (2008, post-period). To strengthen parallel trends, doubly-robust DiD with covariates is used. Results show that individuals in high-conflict districts were less likely to be employed and worked fewer hours post-conflict than those in low-conflict districts, with the negative employment effect strongest during rainy season. For robustness, a small sample Bayesian analysis is carried out between two adjacent districts, Gulmi and Arghakhanchi, where work hours is modeled \textit{hurdle lognormal}. The small sample result mirrors the full-sample findings.
+	
 	
 \end{abstract}
 	
@@ -60,11 +62,11 @@
 \section{Introduction}
 Nepal experienced a decade-long Civil War from 1996 to 2006 A.D. which inflicted countless injuries and claimed more than 13,000 lives \parencite{lawoti2009violent}. The Nepalese Civil War, also termed the Maoist Insurgency, was an armed struggle between the Communist Party of Nepal (Maoists) and the Nepalese Government. The conflict brought widespread destruction: damaged infrastructure, banks and industry closure, local government disruption, and conscription of young individuals into armed conflict. The paper aims to estimate the labor market implications of this violent conflict.
 
-The literature on Maoist Insurgency has focused either on proximate causes of conflict incidence such as poverty and inequality \parencite{nepal2011more, do2010geography}, or on the effects on national GDP and tourism. The micro-economic consequences of the Nepalese Civil war, which includes effects on education and earnings, is understudied and unclear. Given the conflict's disruptive and violent nature, from adolescent conscription to the use of extreme force by the government, it is likely that economic activity, and by extension, was profoundly affected by the conflict.
+The literature on Maoist Insurgency has focused either on proximate causes of conflict incidence such as poverty and inequality \parencite{nepal2011more, do2010geography}, or on the effects on national GDP and tourism. The micro-economic consequences of the Nepalese Civil war, which includes effects on education and earnings, is understudied and unclear. Given the conflict's disruptive and violent nature, from adolescent conscription to the use of extreme force by the government, it is likely that economic activity, and by extension, the labor market was profoundly affected by the conflict.
 
-The estimand in question is: \textit{How does increased conflict intensity, measured by the number of conflict-related deaths per 10,000 people, impact a person's likelihood of being employed?} While it may be reasonable to assume \textit{a priori} that conflict likely has a negative effect on employment, the Maoist movement's emphasis on the inclusion of marginalized communities and empowerment of women may have had a positive effect. 
+The estimand in question is: \textit{How does increased conflict intensity, measured by the number of conflict-related deaths per 10,000 people, impact a person's likelihood of being employed?} While it may be reasonable to assume \textit{a priori} that conflict has a negative effect on employment, the Maoist movement's emphasis on the inclusion of marginalized communities and empowerment of women may have had a positive effect. 
 
-I use Nepal Labor Force Survey I (NLFS I, 1998) and Nepal Labor Force Survey II (NLFS II, 2008) for individual-level data on employment, and Uppsala Conflict Data Program (UCDP) for measures on conflict casualties. To estimate the causal effect, a repeated cross-section Difference-in-Differences (DiD) approach is used, where 1998 A.D. serves as the pre-conflict period and 2008 A.D. as the post-conflict period. The analysis is restricted to districts that reported zero conflict-related casualties in 1998. A continuous treatment DiD design is adopted, since by 2008, nearly all districts in Nepal had experienced some level of conflict, leaving no truly untreated units. To bolster the credibility of the Strong Parallel Trends (SPT) assumption, Doubly robust DiD estimator is used to control for covariates. This is different from TWFE DiD used in \textcite{menon2015war} and the conventional DiD used in \textcite{valente2014education}, two studies that have used survey data to gauge the economic consequences of the Nepalese Civil War.
+I use Nepal Labor Force Survey I (NLFS I, 1998) and Nepal Labor Force Survey II (NLFS II, 2008) for individual-level data on employment, and Uppsala Conflict Data Program (UCDP) for measures on conflict casualties. To estimate the causal effect, a repeated cross-section Difference-in-Differences (DiD) approach is used, where 1998 A.D. serves as the pre-conflict period and 2008 A.D. as the post-conflict period. The analysis is restricted to districts that reported zero conflict-related casualties in 1998. A continuous treatment DiD design is adopted, since by 2008, nearly all districts in Nepal had experienced some level of conflict, leaving no truly untreated units. For the credibility of the Strong Parallel Trends (SPT) assumption, Doubly robust DiD estimator is used to control for covariates. This is different from TWFE DiD used in \textcite{menon2015war} and the conventional DiD used in \textcite{valente2014education}, two studies that have used survey data to gauge the economic consequences of the Nepalese Civil War.
 
 
 Section 2 provides a brief review of the current literature on conflict causes and consequences, Section 3 sketches a simple theory linking conflict and the labor market, Section 4 describes the data and the variables used, Section 5 provides an extensive discussion on the methodology, its robustness and credibility (and absence thereof), Section 6 displays and summarizes the main results and Section 7 concludes. 
@@ -132,6 +134,8 @@ There are two major difficulties in classifying Nepal's districts into conflicte
 
 I attend to the concerns in the following ways\footnote{The following subsection is highly influenced by \parencite{callaway2024difference}. Please refer to it for further exposition and explanation}
 
+
+
 \begin{enumerate}
 	\item I filter the sample to only those districts that had 0 conflict casualties up until the end of 1998 A.D. This limits the sample to 38 districts. (Districts like Manang and Mustang are excluded in the analysis.)
 	
@@ -198,6 +202,13 @@ I attend to the concerns in the following ways\footnote{The following subsection
 	
 	\input{../Analysis files/small_sample_reg.tex}
 	
+	
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{../Analysis files/overall_conflict_map.png}
+	\caption{The figure shows the categorization of districts into high-conflict (dark red) and low-conflict (light pink) districts. Districts are labeled with their measures of conflict casualties per 10,000 population.}
+	\label{fig:overall_conflict_map}
+\end{figure}
 
 \subsection{Strong Parallel Trends and DiD with Covariates}
 In the previous section, I noted that estimating the causal effect of conflict intensity (as proxied by conflict-related deaths) on employment requires strengthening the parallel trends assumption. Specifically, this implies that districts with lower conflict intensity (low-dose) must serve as valid counterfactuals for districts with higher conflict intensity (high-dose). However, this assumption becomes implausible if these two groups differ systematically in observable characteristics that influence employment outcomes. For eg: let's suppose that during 1998 A.D. (the pre-period), individual employment status was strongly associated with years of education or ethnic background. If this relationship would've persisted in low-conflict areas, and if highly-afflicted and low-afflicted districts differ along these dimensions, then the parallel trends assumption may fail to hold. In such a case, the observed trends in low-afflicted districts cannot serve as untreated potential outcome for highly afflicted districts. Therefore, as emphasized by \parencite{baker2025difference}, checking balance in observable determinants of $Y_i,t(d_L)$ is a sensible way to evaluate the validity of parallel trends (in this case strong parallel trends).
@@ -320,9 +331,28 @@ I partition the dataset into dry, winter, and rainy-only sample. This is done fo
 \end{enumerate}
 
 
+\subsubsection{Results: Dry Season (mid-Sep to mid-Jan)}
 \input{../Analysis files/model_dry.tex}
-\input{../Analysis files/model_rainy.tex}
+For dry seasons, the negative employment effect matches the overall negative effect of 4 to 5 less work hours. There is however lower average probability of being currently or usually employed (note : the standard errors are bigger, likely due to lower N for each season-specific sub-sample)
+
+
+\subsubsection{Results: Winter Season (mid-Jan to mid-May)}
 \input{../Analysis files/model_winter.tex}
+
+For the winter season, the average employment effect is positive but only for those whose work could be categorized as self-employment. There is also higher average probability of being self-employed. However, the effect on overall work-hours (which is inclusive of self-employment work hours) is not statistically different from zero effect. 
+
+Likely Explanation:
+\begin{itemize}
+	\item High conflict districts were mostly part of Nepal's hilly and mountainous belt. This means that their work cycle may not have followed the Jestha(mid-May) to Kartik(mid-October) paddy cycle of the agricultural Terai. Agriculture in the Hilly and Mountainous belt produce important cash crops and vegetables in the winter period. This maybe a reason why we see positive discrepancy in work hours and employment probability. 
+\end{itemize}
+
+
+\subsubsection{Results: Rainy Season (mid-May to mid-Sep)}
+\input{../Analysis files/model_rainy.tex}
+
+We see the largest negative effect in the rainy season, with average negative employment effect of 8.5 hours for overall work, and 11 less work hours for work categorized as self-employment.
+
+
 
 
 \section{Robustness}
@@ -380,12 +410,15 @@ The standard OLS DiD estimator does not restrict outcomes to positive values and
 	\label{fig:wh_histogram}
 \end{figure}
 
-The econometric model can be written as follows:
-$$\text{wh}_{i} \sim \text{hurdleLognormal}(hu_i, \mu_i)$$
-$$\mu_{i} = \alpha_{GID[i]}$$
-$$hu_{i} = \beta_{GID[i]}$$
-$$\alpha_{GID[i]} \sim \text{lognormal}(3, 0.5)$$
-$$\beta_{GID[i]} \sim \text{normal}(0, 1)$$
+The econometric model can be written as:
+\begin{align*}
+	wh_{i} \text{(work hours)} &\sim \text{hurdleLognormal}(hu_i, \mu_i) \\
+	\mu_{i} &= \alpha_{GID[i]} \\
+	hu_{i} &= \beta_{GID[i]} \\
+	\alpha_{GID[i]} &\sim \text{Lognormal}(3,\, 0.5) \\
+	\beta_{GID[i]} &\sim \text{Normal}(-1,\, 1)
+\end{align*}
+
 where, for $GID[i]$, $i = \{ 1, 2, 3, 4\}$ represents four interactions group ids: 1 = 1998 Gulmi (low-conflict); 2 = 1998 Arghakhanchi (high-conflict); 3 = 2008 Gulmi (low-conflict); 4 = 2008 Arghakhanchi (high-conflict).
 
 Here, $\mu_i$ is the average work hours (conditional on work hours $> 0$) in the log scale, and $hu_i$ represents the probability of observing $0$ hours worked, which are estimated on the log and logit scales respectively.
@@ -398,14 +431,14 @@ Here, $\mu_i$ is the average work hours (conditional on work hours $> 0$) in the
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\textwidth]{../Analysis files/coefplot_map.jpg}
-	\caption{}
+	\caption{The figure shows predicted non-zero work hours for each of the four interaction groups. Green shows the Bayesian prediction for low-conflict Gulmi and red shows the prediction for high-conflict Arghakhanchi before and after conflict.}
 	\label{fig:coefplot_map}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\textwidth]{../Analysis files/coefplot_map_hu.jpg}
-	\caption{}
+	\caption{The figure shows predicted hurdle probability (probability of observing $0$ hours worked) for each of the four interaction groups. Green shows the Bayesian prediction for low-conflict Gulmi and red shows the prediction for high-conflict Arghakhanchi before and after conflict.}
 	\label{fig:coefplot_map_hu}
 \end{figure}
 

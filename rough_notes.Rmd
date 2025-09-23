@@ -43,3 +43,15 @@ I partition the dataset into dry, winter, and rainy-only sample. This is done fo
 
 1.  To decompose the ATT for dry, winter and rainy seasons.
 2.  The untreated counter factual for treated units is more plausible within each sub sample.
+
+
+
+
+## Abstract:
+
+Although macro-economic consequences of Nepal's decade-long Maoist Insurgency are well-measured and understood, there are few estimates on microeconomic effects. This study looks at the labor-market consequences of Nepal's Maoist Conflict. The outcome variables are labor supply measures: likelihood of being employed and the number of hours worked. Doubly Robust Difference-in-differences is used where people are assigned into high-conflict and low-conflict groups based on the number of casualties per 10,000 population in a given district. The time variation comes from the use of NLFS I (1998 A.D.) as the pre-period and NLFS II (2008 A.D) as the post period. To adjust for selection into high-conflict, DiD with covariates is used. Overall, individuals in high-conflict districts were less likely to be employed and worked fewer hours post-conflict than the comparison group.The effect is highest in the rainy season while we see no effects for winter season. To further aid robustness, a small sample Bayesian analysis is carried out between two adjacent districts Gulmi and Arghakhanchi where work hours is modelled as hurdle_lognormal. The small sample result mimics the full-sample specification results.
+
+
+Although macro-economic consequences of Nepal's decade-long Maoist Insurgency are well-documented, microeconomic effects remain less explored. This study examines the labor-market consequences of Nepal's Maoist Conflict using a difference-in-differences design. Variations come from a) classification of districts into high and low-conflict based on casualties, b) comparing Nepal Labour Force Survey I (1998, pre-period) with NLFS II (2008, post-period). To strengthen parallel trends, doubly-robust DiD with covariates is used. Results show that individuals in high-conflict districts were less likely to be employed and worked fewer hours post-conflict than those in low-conflict districts, with the negative employment effect strongest during rainy season. For robustness, a small sample Bayesian analysis is carried out between two adjacent districts, Gulmi and Arghakhanchi, where work hours is modelled as hurdle_lognormal. The small sample result mirrors the full-sample findings.
+
+
