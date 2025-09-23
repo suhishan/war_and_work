@@ -10,6 +10,7 @@ library(tidyverse)
 library(xtable)
 library(tidybayes)
 library(patchwork)
+library(ggrepel)
 
 theme_set(theme_minimal()+
             theme(panel.grid = element_blank()))
@@ -45,22 +46,39 @@ districts_joined <- inner_join(districts, c_small,
 districts_joined <- districts_joined %>% mutate(
   treatment_s = factor(treatment_s,
                        labels = c("Low Conflict Intensity",
-                                  "High Conflict Intensity"))
+                                  "High Conflict Intensity")),
+  cd_per_10000 = round(cd_per_10000, 2)
 )
+district_centroids <- districts_joined %>%
+  st_point_on_surface() %>%   
+  st_coordinates() %>%
+  as.data.frame() %>%
+  cbind(districts_joined)
 
-p1 <- districts_joined %>% 
-  ggplot()+
-  geom_sf(aes(fill = treatment_s), color = "black", size = 0.2)+
+p2 <- ggplot(districts_joined) +
+  geom_sf(aes(fill = treatment_s), color = "black", size = 0.2) +
   scale_fill_manual(
     values = c("Low Conflict Intensity" = "lightpink",
                "High Conflict Intensity" = "darkred"),
     name = "Treatment"
-  )+
-  geom_sf_text(aes(label = as.character(best_est)), size = 2)+
-  theme_minimal()
-  
+  ) +
+  labs(x = "", y = "", 
+       title = "Treatment Classification into High-and-Low Conflict Districts")+
+  geom_label_repel(
+    data = district_centroids,
+    aes(X, Y, label = paste(distname, as.character(cd_per_10000))),
+    size = 4,
+    box.padding = 0.3,   
+    point.padding = 0.3, 
+    segment.color = NA
+  ) +
+  theme_minimal(base_size = 20)+
+  theme(legend.position = "bottom")
 
-p1
+ggsave("Analysis files/overall_conflict_map.png", plot = p2,
+       width = 45, height = 30, units = c("cm"), bg = "white")
+
+
 ```
 
 # A new idea.
